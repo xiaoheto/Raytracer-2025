@@ -6,6 +6,7 @@ use easy_task::vec3;
 use easy_task::vec3::Point3;
 use easy_task::vec3::Vec3;
 use std::fs::File;
+use std::fs::create_dir_all;
 use std::io::Write;
 fn ray_color(r: &Ray) -> Color {
     let unit_direction = vec3::unit_vector(r.direction());
@@ -41,8 +42,21 @@ fn main() {
     let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
     let path = "output/book1/image2.ppm";
-    let mut file = File::create(path).expect("Failed to create file");
+    // 创建目录 "output/book1" （如果它还不存在）
+    let dir_path = std::path::Path::new("output/book1"); // 创建 Path 对象
+    if !dir_path.exists() {
+        match create_dir_all(dir_path) {
+            // 使用 match 来处理可能的错误
+            Ok(_) => println!("Directory 'output/book1' created successfully"),
+            Err(e) => {
+                eprintln!("Failed to create directory: {}", e);
+                // 可以根据需要选择 panic 或其他错误处理方式
+                panic!("Failed to create directory: {}", e);
+            }
+        }
+    }
 
+    let mut file = File::create(path).expect("Failed to create file");
     // 写入 PPM 文件头
     writeln!(file, "P3").unwrap();
     writeln!(file, "{} {}", image_width, image_height).unwrap();
