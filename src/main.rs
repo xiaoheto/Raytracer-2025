@@ -1,5 +1,6 @@
 mod easy_task;
 
+use crate::easy_task::vec3::unit_vector;
 use easy_task::color::Color;
 use easy_task::ray::Ray;
 use easy_task::vec3;
@@ -8,22 +9,31 @@ use easy_task::vec3::Vec3;
 use std::fs::File;
 use std::fs::create_dir_all;
 use std::io::Write;
+
 fn ray_color(r: Ray) -> Color {
-    if hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, r) {
-        return Color::new(1.0, 0.0, 0.0);
+    let t = hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, r);
+    if t > 0.0 {
+        let N = unit_vector(r.at(t) - Vec3::new(0.0, 0.0, -1.0));
+        return 0.5 * Color::new(N.x() + 1.0, N.y() + 1.0, N.z() + 1.0);
     }
     let unit_direction = vec3::unit_vector(r.direction());
     let a = 0.5 * (unit_direction.y() + 1.0);
     (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
 }
 
-fn hit_sphere(center: Point3, radius: f64, r: Ray) -> bool {
+//判断光线是否与球体相交
+fn hit_sphere(center: Point3, radius: f64, r: Ray) -> f64 {
     let oc = center - r.origin();
     let a = vec3::dot(r.direction(), r.direction());
     let b = -2.0 * vec3::dot(r.direction(), oc);
     let c = vec3::dot(oc, oc) - radius * radius;
     let discriminant = b * b - 4.0 * a * c;
-    discriminant >= 0.0
+
+    if discriminant < 0.0 {
+        -1.0
+    } else {
+        (-b - discriminant.sqrt()) / (2.0 * a)
+    }
 }
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
@@ -53,7 +63,7 @@ fn main() {
         camera_center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
     let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
-    let path = "output/book1/image3.ppm";
+    let path = "output/book1/image4.ppm";
     let dir_path = std::path::Path::new("output/book1"); // 创建 Path 对象
     if !dir_path.exists() {
         match create_dir_all(dir_path) {
