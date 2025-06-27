@@ -13,6 +13,6 @@ impl Color {
         let gbyte = 255.999 * g;
         let bbyte = 255.999 * b;
 
-        write!(out, "{}{}{}\n", rbyte, gbyte, bbyte)
+        writeln!(out, "{}{}{}", rbyte, gbyte, bbyte)
     }
 }

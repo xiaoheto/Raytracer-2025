@@ -1,17 +1,8 @@
 use super::vec3::{Point3, Vec3};
-
+#[derive(Default, Debug, Copy, Clone)]
 pub struct Ray {
     orig: Vec3,
     dir: Vec3,
-}
-
-impl Default for Ray {
-    fn default() -> Self {
-        Self {
-            orig: Vec3::default(),
-            dir: Vec3::default(),
-        }
-    }
 }
 
 impl Ray {
