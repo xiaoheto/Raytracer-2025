@@ -8,10 +8,22 @@ use easy_task::vec3::Vec3;
 use std::fs::File;
 use std::fs::create_dir_all;
 use std::io::Write;
-fn ray_color(r: &Ray) -> Color {
+fn ray_color(r: Ray) -> Color {
+    if hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, r) {
+        return Color::new(1.0, 0.0, 0.0);
+    }
     let unit_direction = vec3::unit_vector(r.direction());
     let a = 0.5 * (unit_direction.y() + 1.0);
     (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
+}
+
+fn hit_sphere(center: Point3, radius: f64, r: Ray) -> bool {
+    let oc = center - r.origin();
+    let a = vec3::dot(r.direction(), r.direction());
+    let b = -2.0 * vec3::dot(r.direction(), oc);
+    let c = vec3::dot(oc, oc) - radius * radius;
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant >= 0.0
 }
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
@@ -41,16 +53,13 @@ fn main() {
         camera_center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
     let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
-    let path = "output/book1/image2.ppm";
-    // 创建目录 "output/book1" （如果它还不存在）
+    let path = "output/book1/image3.ppm";
     let dir_path = std::path::Path::new("output/book1"); // 创建 Path 对象
     if !dir_path.exists() {
         match create_dir_all(dir_path) {
-            // 使用 match 来处理可能的错误
             Ok(_) => println!("Directory 'output/book1' created successfully"),
             Err(e) => {
                 eprintln!("Failed to create directory: {}", e);
-                // 可以根据需要选择 panic 或其他错误处理方式
                 panic!("Failed to create directory: {}", e);
             }
         }
@@ -70,7 +79,7 @@ fn main() {
             let ray_direction = pixel_center - camera_center;
             let r = Ray::new(camera_center, ray_direction);
 
-            let pixel_color = ray_color(&r);
+            let pixel_color = ray_color(r);
             let r_val = (pixel_color.x() * 255.999) as u8;
             let g_val = (pixel_color.y() * 255.999) as u8;
             let b_val = (pixel_color.z() * 255.999) as u8;
