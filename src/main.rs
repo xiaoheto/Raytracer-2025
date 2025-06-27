@@ -1,40 +1,31 @@
 mod easy_task;
+mod tools;
+use std::rc::Rc;
 
+use crate::easy_task::hittable::{HitRecord, Hittable};
+use crate::easy_task::sphere::Sphere;
 use crate::easy_task::vec3::unit_vector;
 use easy_task::color::Color;
+use easy_task::hittable_list::HittableList;
 use easy_task::ray::Ray;
-use easy_task::vec3;
 use easy_task::vec3::Point3;
 use easy_task::vec3::Vec3;
 use std::fs::File;
 use std::fs::create_dir_all;
 use std::io::Write;
+use tools::rtweekend::INFINITY;
 
-fn ray_color(r: Ray) -> Color {
-    let t = hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, r);
-    if t > 0.0 {
-        let n = unit_vector(r.at(t) - Vec3::new(0.0, 0.0, -1.0));
-        return 0.5 * Color::new(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0);
+fn ray_color(r: Ray, world: &dyn Hittable) -> Color {
+    let mut rec = HitRecord::default();
+    if world.hit(r, 0.0, INFINITY, &mut rec) {
+        return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
     }
+
     let unit_direction = unit_vector(r.direction());
     let a = 0.5 * (unit_direction.y() + 1.0);
     (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
 }
 
-//判断光线是否与球体相交
-fn hit_sphere(center: Point3, radius: f64, r: Ray) -> f64 {
-    let oc = center - r.origin();
-    let a = vec3::dot(r.direction(), r.direction());
-    let b = -2.0 * vec3::dot(r.direction(), oc);
-    let c = vec3::dot(oc, oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
-
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (-b - discriminant.sqrt()) / (2.0 * a)
-    }
-}
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
@@ -43,6 +34,11 @@ fn main() {
     if image_height < 1 {
         image_height = 1;
     }
+
+    let mut world = HittableList::default();
+
+    world.add(Rc::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
+    world.add(Rc::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
 
     //Camera
     let focal_length = 1.0;
@@ -63,7 +59,7 @@ fn main() {
         camera_center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
     let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
-    let path = "output/book1/image4.ppm";
+    let path = "output/book1/image5.ppm";
     let dir_path = std::path::Path::new("output/book1"); // 创建 Path 对象
     if !dir_path.exists() {
         match create_dir_all(dir_path) {
@@ -89,7 +85,7 @@ fn main() {
             let ray_direction = pixel_center - camera_center;
             let r = Ray::new(camera_center, ray_direction);
 
-            let pixel_color = ray_color(r);
+            let pixel_color = ray_color(r, &mut world);
             let r_val = (pixel_color.x() * 255.999) as u8;
             let g_val = (pixel_color.y() * 255.999) as u8;
             let b_val = (pixel_color.z() * 255.999) as u8;
