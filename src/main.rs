@@ -85,7 +85,7 @@ fn main() {
             let ray_direction = pixel_center - camera_center;
             let r = Ray::new(camera_center, ray_direction);
 
-            let pixel_color = ray_color(r, &mut world);
+            let pixel_color = ray_color(r, &world);
             let r_val = (pixel_color.x() * 255.999) as u8;
             let g_val = (pixel_color.y() * 255.999) as u8;
             let b_val = (pixel_color.z() * 255.999) as u8;
