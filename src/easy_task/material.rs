@@ -2,6 +2,7 @@ use crate::easy_task::color::Color;
 use crate::easy_task::hittable::HitRecord;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3::{Vec3, dot, random_unit_vector, reflect, refract, unit_vector};
+use crate::tools::rtweekend::random_double;
 
 pub trait Material {
     fn scatter(
@@ -100,12 +101,20 @@ impl Material for Dielectric {
         let cannot_refract = ri * sin_theta > 1.0;
         let mut _direction = Vec3::default();
 
-        if cannot_refract {
+        if cannot_refract || Self::reflectance(cos_theta, ri) > random_double() {
             _direction = reflect(unit_direction, rec.normal);
         } else {
             _direction = refract(unit_direction, rec.normal, ri);
         }
         *scattered = Ray::new(rec.p, _direction);
         true
+    }
+}
+
+impl Dielectric {
+    fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
+        let mut r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
+        r0 *= r0;
+        r0 + (1.0 - r0) * (1.0 - cosine).powf(5.0)
     }
 }
