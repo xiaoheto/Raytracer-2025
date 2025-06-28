@@ -5,7 +5,7 @@ use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3;
 use crate::easy_task::vec3::{Point3, Vec3};
 use crate::tools::rtweekend;
-use crate::tools::rtweekend::random_double;
+use crate::tools::rtweekend::{degrees_to_radians, random_double};
 use std::fs::{File, create_dir_all};
 use std::io::Write;
 
@@ -14,6 +14,7 @@ pub struct Camera {
     pub image_width: i32,
     pub samples_per_pixel: i32,
     pub max_depth: i32,
+    pub vfov: f64,
 
     image_height: i32,
     center: Point3,
@@ -30,6 +31,7 @@ impl Default for Camera {
             image_width: 100,
             samples_per_pixel: 10,
             max_depth: 10,
+            vfov: 90.0,
 
             image_height: 0,
             center: Point3::default(),
@@ -66,7 +68,7 @@ impl Camera {
     pub fn render(&mut self, world: &dyn Hittable) {
         self.initialize();
 
-        let path = "output/book1/image17.ppm";
+        let path = "output/book1/image18.ppm";
         let dir_path = std::path::Path::new("output/book1"); // 创建 Path 对象
         if !dir_path.exists() {
             match create_dir_all(dir_path) {
@@ -129,7 +131,9 @@ impl Camera {
 
         // 确认视口的大小。
         let focal_length = 1.0;
-        let viewport_height = 2.0;
+        let theta = degrees_to_radians(self.vfov);
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * (self.image_width as f64 / self.image_height as f64);
 
         // 计算水平和垂直视口边缘上的向量。
