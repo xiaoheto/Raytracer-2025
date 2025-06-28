@@ -15,7 +15,7 @@ fn main() {
     let mut world = HittableList::default();
     let material_ground = Rc::new(material::Lambertian::new(Color::new(0.8, 0.8, 0.0)));
     let material_center = Rc::new(material::Lambertian::new(Color::new(0.1, 0.2, 0.5)));
-    let material_left = Rc::new(Dielectric::new(1.50));
+    let material_left = Rc::new(Dielectric::new(1.00 / 1.30));
     let material_right = Rc::new(material::Metal::new(Color::new(0.8, 0.6, 0.2), 1.0));
 
     world.add(Rc::new(Sphere::new(

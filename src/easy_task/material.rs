@@ -2,7 +2,7 @@ use crate::easy_task::color::Color;
 use crate::easy_task::hittable::HitRecord;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3;
-use crate::easy_task::vec3::{dot, random_unit_vector, refract, unit_vector};
+use crate::easy_task::vec3::{Vec3, dot, random_unit_vector, reflect, refract, unit_vector};
 
 pub trait Material {
     fn scatter(
@@ -95,9 +95,18 @@ impl Material for Dielectric {
         };
 
         let unit_direction = unit_vector(r_in.direction());
-        let refracted = refract(unit_direction, rec.normal, ri);
+        let cos_theta = dot(-unit_direction, rec.normal).min(1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
-        *scattered = Ray::new(rec.p, refracted);
+        let cannot_refract = ri * sin_theta > 1.0;
+        let mut direction = Vec3::default();
+
+        if cannot_refract {
+            direction = reflect(unit_direction, rec.normal);
+        } else {
+            direction = refract(unit_direction, rec.normal, ri);
+        }
+        *scattered = Ray::new(rec.p, direction);
         true
     }
 }
