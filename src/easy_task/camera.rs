@@ -1,4 +1,4 @@
-use crate::easy_task::color::Color;
+use crate::easy_task::color::{Color, linear_to_gamma};
 use crate::easy_task::hittable::{HitRecord, Hittable};
 use crate::easy_task::interval::Interval;
 use crate::easy_task::ray::Ray;
@@ -59,7 +59,7 @@ impl Camera {
     pub fn render(&mut self, world: &dyn Hittable) {
         self.initialize();
 
-        let path = "output/book1/image11.ppm";
+        let path = "output/book1/image12.ppm";
         let dir_path = std::path::Path::new("output/book1"); // 创建 Path 对象
         if !dir_path.exists() {
             match create_dir_all(dir_path) {
@@ -86,13 +86,20 @@ impl Camera {
                     pixel_color += Self::ray_color(r, self.max_depth, world);
                 }
 
+                pixel_color *= self.pixel_samples_scale;
+
+                let mut r = pixel_color.x();
+                let mut g = pixel_color.y();
+                let mut b = pixel_color.z();
+
+                r = linear_to_gamma(r);
+                g = linear_to_gamma(g);
+                b = linear_to_gamma(b);
+
                 let intensity = Interval::new(0.000, 0.999);
-                let r_val =
-                    (intensity.clamp(self.pixel_samples_scale * pixel_color.x()) * 256.0) as i32;
-                let g_val =
-                    (intensity.clamp(self.pixel_samples_scale * pixel_color.y()) * 256.0) as i32;
-                let b_val =
-                    (intensity.clamp(self.pixel_samples_scale * pixel_color.z()) * 256.0) as i32;
+                let r_val = (256.0 * intensity.clamp(r)) as i32;
+                let g_val = (256.0 * intensity.clamp(g)) as i32;
+                let b_val = (256.0 * intensity.clamp(b)) as i32;
 
                 // 将像素的 RGB 值写入文件
                 writeln!(file, "{} {} {}", r_val, g_val, b_val).unwrap();
