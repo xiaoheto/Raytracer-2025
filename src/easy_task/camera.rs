@@ -13,6 +13,7 @@ pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: i32,
     pub samples_per_pixel: i32,
+    pub max_depth: i32,
 
     image_height: i32,
     center: Point3,
@@ -28,6 +29,8 @@ impl Default for Camera {
             aspect_ratio: 1.0,
             image_width: 100,
             samples_per_pixel: 10,
+            max_depth: 10,
+
             image_height: 0,
             center: Point3::default(),
             pixel00_loc: Point3::default(),
@@ -39,11 +42,14 @@ impl Default for Camera {
 }
 
 impl Camera {
-    fn ray_color(r: Ray, world: &dyn Hittable) -> Color {
+    fn ray_color(r: Ray, depth: i32, world: &dyn Hittable) -> Color {
+        if depth < 0 {
+            return Color::new(0.0, 0.0, 0.0);
+        }
         let mut rec = HitRecord::default();
         if world.hit(r, Interval::new(0.0, rtweekend::INFINITY), &mut rec) {
             let direction = random_on_hemisphere(rec.normal);
-            return 0.5 * Self::ray_color(Ray::new(rec.p, direction), world);
+            return 0.5 * Self::ray_color(Ray::new(rec.p, direction), depth - 1, world);
         }
 
         let unit_direction = vec3::unit_vector(r.direction());
@@ -53,7 +59,7 @@ impl Camera {
     pub fn render(&mut self, world: &dyn Hittable) {
         self.initialize();
 
-        let path = "output/book1/image7.ppm";
+        let path = "output/book1/image8.ppm";
         let dir_path = std::path::Path::new("output/book1"); // 创建 Path 对象
         if !dir_path.exists() {
             match create_dir_all(dir_path) {
@@ -77,7 +83,7 @@ impl Camera {
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
                 for _sample in 0..self.samples_per_pixel {
                     let r: Ray = self.get_ray(i, j);
-                    pixel_color += Self::ray_color(r, world);
+                    pixel_color += Self::ray_color(r, self.max_depth, world);
                 }
 
                 let intensity = Interval::new(0.000, 0.999);
