@@ -3,7 +3,7 @@ use crate::easy_task::hittable::{HitRecord, Hittable};
 use crate::easy_task::interval::Interval;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3;
-use crate::easy_task::vec3::{Point3, Vec3, random_on_hemisphere, random_unit_vector};
+use crate::easy_task::vec3::{Point3, Vec3, random_unit_vector};
 use crate::tools::rtweekend;
 use crate::tools::rtweekend::random_double;
 use std::fs::{File, create_dir_all};
