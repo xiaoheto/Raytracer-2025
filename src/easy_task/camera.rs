@@ -5,7 +5,7 @@ use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3;
 use crate::easy_task::vec3::{Point3, Vec3};
 use crate::tools::rtweekend;
-use crate::tools::rtweekend::{degrees_to_radians, random_double};
+use crate::tools::rtweekend::random_double;
 use std::fs::{File, create_dir_all};
 use std::io::Write;
 
@@ -15,6 +15,9 @@ pub struct Camera {
     pub samples_per_pixel: i32,
     pub max_depth: i32,
     pub vfov: f64,
+    pub lookfrom: Point3,
+    pub lookat: Point3,
+    pub vup: Vec3,
 
     image_height: i32,
     center: Point3,
@@ -22,6 +25,9 @@ pub struct Camera {
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
     pixel_samples_scale: f64,
+    u: Vec3,
+    v: Vec3,
+    w: Vec3,
 }
 
 impl Default for Camera {
@@ -32,6 +38,9 @@ impl Default for Camera {
             samples_per_pixel: 10,
             max_depth: 10,
             vfov: 90.0,
+            lookfrom: Point3::default(),
+            lookat: Point3::new(0.0, 0.0, -1.0),
+            vup: Vec3::new(0.0, 1.0, 0.0),
 
             image_height: 0,
             center: Point3::default(),
@@ -39,6 +48,9 @@ impl Default for Camera {
             pixel_delta_u: Vec3::default(),
             pixel_delta_v: Vec3::default(),
             pixel_samples_scale: 0.1,
+            u: Vec3::default(),
+            v: Vec3::default(),
+            w: Vec3::default(),
         }
     }
 }
@@ -68,7 +80,7 @@ impl Camera {
     pub fn render(&mut self, world: &dyn Hittable) {
         self.initialize();
 
-        let path = "output/book1/image18.ppm";
+        let path = "output/book1/image19.ppm";
         let dir_path = std::path::Path::new("output/book1"); // 创建 Path 对象
         if !dir_path.exists() {
             match create_dir_all(dir_path) {
@@ -126,19 +138,25 @@ impl Camera {
             self.image_height
         };
 
-        self.center = Point3::default();
         self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64;
 
-        // 确认视口的大小。
-        let focal_length = 1.0;
-        let theta = degrees_to_radians(self.vfov);
+        self.center = self.lookfrom;
+
+        // 确定视口尺寸。
+        let focal_length = (self.lookfrom - self.lookat).length();
+        let theta = rtweekend::degrees_to_radians(self.vfov);
         let h = (theta / 2.0).tan();
         let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * (self.image_width as f64 / self.image_height as f64);
 
+        // 计算相机坐标系的 u,v,w 单位基向量。
+        self.w = vec3::unit_vector(self.lookfrom - self.lookat);
+        self.u = vec3::unit_vector(vec3::cross(self.vup, self.w));
+        self.v = vec3::cross(self.w, self.u);
+
         // 计算水平和垂直视口边缘上的向量。
-        let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
-        let viewport_v = Vec3::new(0.0, -viewport_height, 0.0);
+        let viewport_u = self.u * viewport_width;
+        let viewport_v = -self.v * viewport_height;
 
         // 计算从像素到像素的水平和垂直增量向量。
         self.pixel_delta_u = viewport_u / self.image_width as f64;
@@ -146,7 +164,7 @@ impl Camera {
 
         // 计算左上角像素的位置。
         let viewport_upper_left =
-            self.center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+            self.center - (focal_length * self.w) - (0.5 * viewport_u) - (0.5 * viewport_v);
         self.pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self.pixel_delta_v);
     }
 
