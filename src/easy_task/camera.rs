@@ -3,7 +3,7 @@ use crate::easy_task::hittable::{HitRecord, Hittable};
 use crate::easy_task::interval::Interval;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3;
-use crate::easy_task::vec3::{Point3, Vec3};
+use crate::easy_task::vec3::{Point3, Vec3, random_on_hemisphere};
 use crate::tools::rtweekend;
 use crate::tools::rtweekend::random_double;
 use std::fs::{File, create_dir_all};
@@ -42,7 +42,8 @@ impl Camera {
     fn ray_color(r: Ray, world: &dyn Hittable) -> Color {
         let mut rec = HitRecord::default();
         if world.hit(r, Interval::new(0.0, rtweekend::INFINITY), &mut rec) {
-            return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
+            let direction = random_on_hemisphere(rec.normal);
+            return 0.5 * Self::ray_color(Ray::new(rec.p, direction), world);
         }
 
         let unit_direction = vec3::unit_vector(r.direction());
@@ -52,7 +53,7 @@ impl Camera {
     pub fn render(&mut self, world: &dyn Hittable) {
         self.initialize();
 
-        let path = "output/book1/image6.ppm";
+        let path = "output/book1/image7.ppm";
         let dir_path = std::path::Path::new("output/book1"); // 创建 Path 对象
         if !dir_path.exists() {
             match create_dir_all(dir_path) {
