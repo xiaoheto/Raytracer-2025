@@ -1,13 +1,15 @@
 use crate::easy_task::interval::Interval;
+use crate::easy_task::material::Material;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3::{Point3, Vec3, dot};
-
-#[derive(Debug, Clone, Copy, Default)]
+use std::rc::Rc;
+#[derive(Clone, Default)]
 pub struct HitRecord {
     pub p: Point3,    //交点位置
     pub normal: Vec3, // 交点法向量
     pub t: f64,       //距离
     pub front_face: bool,
+    pub mat: Option<Rc<dyn Material>>,
 }
 
 impl HitRecord {
