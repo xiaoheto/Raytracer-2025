@@ -49,7 +49,7 @@ impl Camera {
         let mut rec = HitRecord::default();
         if world.hit(r, Interval::new(0.001, rtweekend::INFINITY), &mut rec) {
             let direction = rec.normal + random_unit_vector();
-            return 0.5 * Self::ray_color(Ray::new(rec.p, direction), depth - 1, world);
+            return 0.1 * Self::ray_color(Ray::new(rec.p, direction), depth - 1, world);
         }
 
         let unit_direction = vec3::unit_vector(r.direction());
@@ -59,7 +59,7 @@ impl Camera {
     pub fn render(&mut self, world: &dyn Hittable) {
         self.initialize();
 
-        let path = "output/book1/image10.ppm";
+        let path = "output/book1/image11.ppm";
         let dir_path = std::path::Path::new("output/book1"); // 创建 Path 对象
         if !dir_path.exists() {
             match create_dir_all(dir_path) {
