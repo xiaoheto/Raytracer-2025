@@ -1,3 +1,4 @@
+use crate::easy_task::aabb::Aabb;
 use crate::easy_task::hittable::{HitRecord, Hittable};
 use crate::easy_task::interval::Interval;
 use crate::easy_task::material::Material;
@@ -8,31 +9,43 @@ use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct Sphere {
-    pub center: Ray,
-    pub radius: f64,
-    pub mat: Rc<dyn Material>,
+    center: Ray,
+    radius: f64,
+    mat: Rc<dyn Material>,
+    bbox: Aabb,
 }
 
 impl Sphere {
     pub fn new(static_center: Point3, radius: f64, mat: Rc<dyn Material>) -> Self {
+        let center = Ray::new(static_center, Vec3::default());
+        let r = radius.max(0.0);
+        let rvec = Vec3::new(radius, radius, radius);
+
         Self {
-            center: Ray::new(static_center, Vec3::new(0.0, 0.0, 0.0)),
-            radius: radius.max(0.0),
+            center,
+            radius: r,
             mat,
+            bbox: Aabb::new_point(static_center - rvec, static_center + rvec),
         }
     }
 
     pub fn new_move(center1: Point3, center2: Point3, radius: f64, mat: Rc<dyn Material>) -> Self {
+        let center = Ray::new(center1, center2 - center1);
+        let r = radius.max(0.0);
+        let rvec = Vec3::new(radius, radius, radius);
+        let box1 = Aabb::new_point(center.at(0.0) - rvec, center.at(0.0) + rvec);
+        let box2 = Aabb::new_point(center.at(1.0) - rvec, center.at(1.0) + rvec);
         Self {
-            center: Ray::new(center1, center2 - center1),
-            radius: radius.max(0.0),
+            center,
+            radius: r,
             mat,
+            bbox: Aabb::new_aabb(box1, box2),
         }
     }
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, r: Ray, ray_t: Interval, rec: &mut HitRecord) -> bool {
+    fn hit(&self, r: Ray, ray_t: &mut Interval, rec: &mut HitRecord) -> bool {
         let current_center = self.center.at(r.time());
         let oc = current_center - r.origin();
         let a = r.direction().squared_length();
@@ -60,5 +73,9 @@ impl Hittable for Sphere {
         rec.set_face_normal(r, outward_normal);
         rec.mat = Some(Rc::clone(&self.mat));
         true
+    }
+
+    fn bounding_box(&self) -> Aabb {
+        self.bbox
     }
 }

@@ -1,8 +1,10 @@
+use crate::easy_task::aabb::Aabb;
 use crate::easy_task::interval::Interval;
 use crate::easy_task::material::Material;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3::{Point3, Vec3, dot};
 use std::rc::Rc;
+
 #[derive(Clone, Default)]
 pub struct HitRecord {
     pub p: Point3,    //交点位置
@@ -10,6 +12,8 @@ pub struct HitRecord {
     pub t: f64,       //距离
     pub front_face: bool,
     pub mat: Option<Rc<dyn Material>>,
+    pub u: f64,
+    pub v: f64,
 }
 
 impl HitRecord {
@@ -24,5 +28,7 @@ impl HitRecord {
 }
 
 pub trait Hittable {
-    fn hit(&self, r: Ray, ray_t: Interval, rec: &mut HitRecord) -> bool;
+    fn hit(&self, r: Ray, ray_t: &mut Interval, rec: &mut HitRecord) -> bool;
+
+    fn bounding_box(&self) -> Aabb;
 }

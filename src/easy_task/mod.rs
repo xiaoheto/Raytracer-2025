@@ -1,5 +1,5 @@
-mod aabb;
-mod bvh_node;
+pub mod aabb;
+pub mod bvh_node;
 pub mod camera;
 pub mod color;
 pub mod hittable;
@@ -8,5 +8,5 @@ pub mod interval;
 pub mod material;
 pub mod ray;
 pub mod sphere;
-mod texture;
+pub mod texture;
 pub mod vec3;

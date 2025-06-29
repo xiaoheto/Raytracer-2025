@@ -71,7 +71,7 @@ impl Camera {
             return Color::new(0.0, 0.0, 0.0);
         }
         let mut rec = HitRecord::default();
-        if world.hit(r, Interval::new(0.001, rtweekend::INFINITY), &mut rec) {
+        if world.hit(r, &mut Interval::new(0.001, rtweekend::INFINITY), &mut rec) {
             let mut scattered = Ray::default();
             let mut attenuation = Color::default();
 
@@ -90,7 +90,7 @@ impl Camera {
     pub fn render(&mut self, world: &dyn Hittable) {
         self.initialize();
 
-        let path = "output/book2/image1.ppm";
+        let path = "output/book2/image2.ppm";
         let dir_path = std::path::Path::new("output/book2"); // 创建 Path 对象
         if !dir_path.exists() {
             match create_dir_all(dir_path) {

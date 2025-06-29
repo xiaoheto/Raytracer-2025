@@ -6,6 +6,7 @@ use crate::easy_task::camera::Camera;
 use crate::easy_task::color::Color;
 use crate::easy_task::material::{Dielectric, Lambertian, Material, Metal};
 use crate::easy_task::sphere::Sphere;
+use crate::easy_task::texture::CheckerTexture;
 use crate::easy_task::vec3::Vec3;
 use crate::tools::rtweekend::{random_double, random_double_range};
 use easy_task::hittable_list::HittableList;
@@ -14,11 +15,15 @@ use easy_task::vec3::Point3;
 fn main() {
     let mut world = HittableList::default();
 
-    let ground_material: Rc<dyn Material> = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    let checker = Rc::new(CheckerTexture::new_color(
+        0.32,
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
     world.add(Rc::new(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
-        ground_material,
+        Rc::new(Lambertian::new_texture(checker)),
     )));
 
     for a in -11..11 {
@@ -76,6 +81,8 @@ fn main() {
         1.0,
         material3,
     )));
+
+    world = HittableList::new(Rc::new(world));
 
     let mut cam = Camera::default();
     cam.aspect_ratio = 16.0 / 9.0;
