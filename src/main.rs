@@ -6,7 +6,7 @@ use crate::easy_task::camera::Camera;
 use crate::easy_task::color::Color;
 use crate::easy_task::material::{Dielectric, Lambertian, Material, Metal};
 use crate::easy_task::sphere::Sphere;
-use crate::easy_task::vec3;
+use crate::easy_task::vec3::Vec3;
 use crate::tools::rtweekend::{random_double, random_double_range};
 use easy_task::hittable_list::HittableList;
 use easy_task::vec3::Point3;
@@ -34,6 +34,13 @@ fn main() {
                 let sphere_material: Rc<dyn Material> = if choose_mat < 0.8 {
                     // diffuse
                     let albedo = Color::random() * Color::random();
+                    let center2 = center + Vec3::new(0.0, random_double_range(0.0, 0.5), 0.0);
+                    world.add(Rc::new(Sphere::new_move(
+                        center,
+                        center2,
+                        0.2,
+                        Rc::new(Lambertian::new(albedo)),
+                    )));
                     Rc::new(Lambertian::new(albedo))
                 } else if choose_mat < 0.95 {
                     // metal
@@ -73,14 +80,14 @@ fn main() {
 
     let mut cam = Camera::default();
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 1200;
-    cam.samples_per_pixel = 500;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
     cam.max_depth = 50;
 
     cam.vfov = 20.0;
     cam.lookfrom = Point3::new(13.0, 2.0, 3.0);
     cam.lookat = Point3::new(0.0, 0.0, 0.0);
-    cam.vup = vec3::Vec3::new(0.0, 1.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
 
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;

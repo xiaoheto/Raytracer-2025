@@ -90,11 +90,11 @@ impl Camera {
     pub fn render(&mut self, world: &dyn Hittable) {
         self.initialize();
 
-        let path = "output/book1/image22.ppm";
-        let dir_path = std::path::Path::new("output/book1"); // 创建 Path 对象
+        let path = "output/book2/image1.ppm";
+        let dir_path = std::path::Path::new("output/book2"); // 创建 Path 对象
         if !dir_path.exists() {
             match create_dir_all(dir_path) {
-                Ok(_) => println!("Directory 'output/book1' created successfully"),
+                Ok(_) => println!("Directory 'output/book2' created successfully"),
                 Err(e) => {
                     eprintln!("Failed to create directory: {}", e);
                     panic!("Failed to create directory: {}", e);
@@ -197,8 +197,9 @@ impl Camera {
             self.defocus_disk_sample()
         };
         let ray_direction = pixel_sample - ray_origin;
+        let ray_time = random_double();
 
-        Ray::new(ray_origin, ray_direction)
+        Ray::new_time(ray_origin, ray_direction, ray_time)
     }
 
     fn defocus_disk_sample(&self) -> Point3 {
