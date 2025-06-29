@@ -34,13 +34,6 @@ fn main() {
                 let sphere_material: Rc<dyn Material> = if choose_mat < 0.8 {
                     // diffuse
                     let albedo = Color::random() * Color::random();
-                    let center2 = center + Vec3::new(0.0, random_double_range(0.0, 0.5), 0.0);
-                    world.add(Rc::new(Sphere::new_move(
-                        center,
-                        center2,
-                        0.2,
-                        Rc::new(Lambertian::new(albedo)),
-                    )));
                     Rc::new(Lambertian::new(albedo))
                 } else if choose_mat < 0.95 {
                     // metal
@@ -52,7 +45,13 @@ fn main() {
                     Rc::new(Dielectric::new(1.5))
                 };
 
-                world.add(Rc::new(Sphere::new(center, 0.2, sphere_material)));
+                let center2 = center + Vec3::new(0.0, random_double_range(0.0, 0.5), 0.0);
+                world.add(Rc::new(Sphere::new_move(
+                    center,
+                    center2,
+                    0.2,
+                    sphere_material,
+                )));
             }
         }
     }
