@@ -11,6 +11,7 @@ pub struct Aabb {
 }
 
 impl Aabb {
+    #[allow(dead_code)]
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
         Self { x, y, z }
     }
@@ -87,10 +88,12 @@ impl Aabb {
     }
 
     pub fn longest_axis(&self) -> i32 {
-        if self.x.size() > self.y.size() {
-            if self.x.size() > self.z.size() { 0 } else { 2 }
+        if self.x.size() > self.y.size() && self.x.size() > self.z.size() {
+            0
+        } else if self.y.size() > self.z.size() {
+            1
         } else {
-            if self.y.size() > self.z.size() { 1 } else { 2 }
+            2
         }
     }
 }
@@ -100,6 +103,7 @@ pub const EMPTY: Aabb = Aabb {
     y: interval::EMPTY,
     z: interval::EMPTY,
 };
+#[allow(dead_code)]
 pub const UNIVERSE: Aabb = Aabb {
     x: interval::UNIVERSE,
     y: interval::UNIVERSE,

@@ -23,8 +23,8 @@ impl BvhNode {
     pub fn new(src_objects: &mut Vec<Rc<dyn Hittable>>, start: usize, end: usize) -> Self {
         // 接受 &mut Vec
         let mut bbox = aabb::EMPTY;
-        for object_index in start..end {
-            bbox = Aabb::new_aabb(bbox, src_objects[object_index].bounding_box());
+        for object_index in src_objects.iter().take(end).skip(start) {
+            bbox = Aabb::new_aabb(bbox, object_index.bounding_box());
         }
         let axis = bbox.longest_axis();
         let comparator = match axis {
