@@ -12,7 +12,7 @@ use crate::tools::rtweekend::{random_double, random_double_range};
 use easy_task::hittable_list::HittableList;
 use easy_task::vec3::Point3;
 
-fn main() {
+fn bouncing_spheres() {
     let mut world = HittableList::default();
 
     let checker = Rc::new(CheckerTexture::new_color(
@@ -99,4 +99,48 @@ fn main() {
     cam.focus_dist = 10.0;
 
     cam.render(&world);
+}
+
+fn checkered_spheres() {
+    let mut world = HittableList::default();
+
+    let checker = Rc::new(CheckerTexture::new_color(
+        0.32,
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
+
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, -10.0, 0.0),
+        10.0,
+        Rc::new(Lambertian::new_texture(checker.clone())),
+    )));
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, 10.0, 0.0),
+        10.0,
+        Rc::new(Lambertian::new_texture(checker.clone())),
+    )));
+
+    let mut cam = Camera::default();
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20.0;
+    cam.lookfrom = Point3::new(13.0, 2.0, 3.0);
+    cam.lookat = Point3::new(0.0, 0.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+
+    cam.render(&mut world);
+}
+
+fn main() {
+    match 2 {
+        1 => bouncing_spheres(),
+        2 => checkered_spheres(),
+        _ => (),
+    }
 }
