@@ -3,6 +3,7 @@ use crate::easy_task::interval::Interval;
 use crate::easy_task::rtw_srb_image::RtwImage;
 use crate::easy_task::vec3::Point3;
 use std::rc::Rc;
+use crate::easy_task::perlin::Perlin;
 
 pub trait Texture {
     fn value(&self, u: f64, v: f64, p: Point3) -> Color;
@@ -102,5 +103,16 @@ impl Texture for ImageTexture {
             color_scale * pixel[1] as f64,
             color_scale * pixel[2] as f64,
         )
+    }
+}
+
+#[derive(Default,Debug,Clone)]
+pub struct NoiseTexture{
+    noise: Perlin
+}
+
+impl Texture for NoiseTexture{
+    fn value(&self, _u: f64, _v: f64, p: Point3) -> Color {
+        Color::new(1.0,1.0,1.0) * self.noise.noise(p)
     }
 }
