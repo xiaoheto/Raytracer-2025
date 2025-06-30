@@ -50,9 +50,7 @@ impl Perlin {
     fn permute(p: &mut [i32], n: usize) {
         for i in (0..n).rev() {
             let target = random_int(0, i as i32) as usize;
-            let tmp = p[i];
-            p[i] = p[target];
-            p[target] = tmp;
+            p.swap(i, target);
         }
     }
 }
