@@ -6,7 +6,7 @@ use crate::easy_task::camera::Camera;
 use crate::easy_task::color::Color;
 use crate::easy_task::material::{Dielectric, Lambertian, Material, Metal};
 use crate::easy_task::sphere::Sphere;
-use crate::easy_task::texture::CheckerTexture;
+use crate::easy_task::texture::{CheckerTexture, ImageTexture, NoiseTexture, Texture};
 use crate::easy_task::vec3::Vec3;
 use crate::tools::rtweekend::{random_double, random_double_range};
 use easy_task::hittable_list::HittableList;
@@ -137,10 +137,66 @@ fn checkered_spheres() {
     cam.render(&world);
 }
 
+fn earth() {
+    let earth_texture: Rc<dyn Texture> = Rc::new(ImageTexture::new("earthmap.jpg"));
+    let earth_surface: Rc<dyn Material> =
+        Rc::new(Lambertian::new_texture(Rc::clone(&earth_texture)));
+    let globe = Rc::new(Sphere::new(Point3::new(0.0, 0.0, 0.0), 2.0, earth_surface));
+
+    let mut cam = Camera::default();
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 50;
+    cam.max_depth = 10;
+
+    cam.vfov = 20.0;
+    cam.lookfrom = Point3::new(0.0, 0.0, 12.0);
+    cam.lookat = Point3::new(0.0, 0.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+
+    cam.render(&HittableList::new(globe));
+}
+
+fn perlin_spheres() {
+    let mut world = HittableList::default();
+
+    let pertext = Rc::new(NoiseTexture::default());
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Rc::new(Lambertian::new_texture(pertext.clone())),
+    )));
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        Rc::new(Lambertian::new_texture(pertext.clone())),
+    )));
+
+    let mut cam = Camera::default();
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = 20.0;
+    cam.lookfrom = Point3::new(13.0, 2.0, 3.0);
+    cam.lookat = Point3::new(0.0, 0.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+
+    cam.render(&world);
+}
 fn main() {
-    match 2 {
+    match 4 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
+        3 => earth(),
+        4 => perlin_spheres(),
         _ => (),
     }
 }
