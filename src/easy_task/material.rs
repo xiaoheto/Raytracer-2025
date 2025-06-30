@@ -2,7 +2,9 @@ use crate::easy_task::color::Color;
 use crate::easy_task::hittable::HitRecord;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::texture::{SolidColor, Texture};
-use crate::easy_task::vec3::{Vec3, dot, random_unit_vector, reflect, refract, unit_vector};
+use crate::easy_task::vec3::{
+    Point3, Vec3, dot, random_unit_vector, reflect, refract, unit_vector,
+};
 use crate::tools::rtweekend::random_double;
 use std::rc::Rc;
 
@@ -15,6 +17,10 @@ pub trait Material {
         _scattered: &mut Ray,
     ) -> bool {
         true
+    }
+
+    fn emitted(&self, _u: f64, _v: f64, _p: Point3) -> Color {
+        Color::new(0.0, 0.0, 0.0)
     }
 }
 
@@ -126,5 +132,39 @@ impl Dielectric {
         let mut r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
         r0 *= r0;
         r0 + (1.0 - r0) * (1.0 - cosine).powf(5.0)
+    }
+}
+
+#[derive(Clone)]
+pub struct DiffuseLight {
+    tex: Rc<dyn Texture>,
+}
+
+impl Material for DiffuseLight {
+    fn scatter(
+        &self,
+        _r_in: Ray,
+        _rec: HitRecord,
+        _attenuation: &mut Color,
+        _scattered: &mut Ray,
+    ) -> bool {
+        false
+    }
+
+    fn emitted(&self, u: f64, v: f64, p: Point3) -> Color {
+        self.tex.value(u, v, p)
+    }
+}
+
+impl DiffuseLight {
+    #[allow(dead_code)]
+    pub fn new(tex: Rc<dyn Texture>) -> Self {
+        Self { tex }
+    }
+
+    pub fn new_color(emit: Color) -> Self {
+        Self {
+            tex: Rc::new(SolidColor::new(emit)),
+        }
     }
 }

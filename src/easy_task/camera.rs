@@ -14,6 +14,7 @@ pub struct Camera {
     pub image_width: i32,
     pub samples_per_pixel: i32,
     pub max_depth: i32,
+    pub background: Color,
     pub vfov: f64,
     pub lookfrom: Point3,
     pub lookat: Point3,
@@ -42,6 +43,7 @@ impl Default for Camera {
             image_width: 100,
             samples_per_pixel: 10,
             max_depth: 10,
+            background: Color::default(),
             vfov: 90.0,
             lookfrom: Point3::default(),
             lookat: Point3::new(0.0, 0.0, -1.0),
@@ -66,31 +68,31 @@ impl Default for Camera {
 }
 
 impl Camera {
-    fn ray_color(r: Ray, depth: i32, world: &dyn Hittable) -> Color {
+    fn ray_color(&self, r: Ray, depth: i32, world: &dyn Hittable) -> Color {
         if depth < 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
         let mut rec = HitRecord::default();
-        if world.hit(r, &mut Interval::new(0.001, rtweekend::INFINITY), &mut rec) {
-            let mut scattered = Ray::default();
-            let mut attenuation = Color::default();
-
-            if let Some(mat) = rec.mat.clone() {
-                if mat.scatter(r, rec, &mut attenuation, &mut scattered) {
-                    return attenuation * Self::ray_color(scattered, depth - 1, world);
-                }
-            }
-            return Color::new(0.0, 0.0, 0.0);
+        if !world.hit(r, &mut Interval::new(0.001, rtweekend::INFINITY), &mut rec) {
+            return self.background;
         }
 
-        let unit_direction = vec3::unit_vector(r.direction());
-        let a = 0.5 * (unit_direction.y() + 1.0);
-        (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
+        let mut scattered = Ray::default();
+        let mut attenuation = Color::default();
+        let color_from_emission = rec.mat.clone().unwrap().emitted(rec.u, rec.v, rec.p);
+
+        if let Some(mat) = rec.mat.clone() {
+            if !mat.scatter(r, rec, &mut attenuation, &mut scattered) {
+                return color_from_emission;
+            }
+        }
+        let color_from_scatter = attenuation * self.ray_color(scattered, depth - 1, world);
+        color_from_emission + color_from_scatter
     }
     pub fn render(&mut self, world: &dyn Hittable) {
         self.initialize();
 
-        let path = "output/book2/image12.ppm";
+        let path = "output/book2/image13.ppm";
         let dir_path = std::path::Path::new("output/book2"); // 创建 Path 对象
         if !dir_path.exists() {
             match create_dir_all(dir_path) {
@@ -114,7 +116,7 @@ impl Camera {
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
                 for _sample in 0..self.samples_per_pixel {
                     let r: Ray = self.get_ray(i, j);
-                    pixel_color += Self::ray_color(r, self.max_depth, world);
+                    pixel_color += self.ray_color(r, self.max_depth, world);
                 }
 
                 pixel_color *= self.pixel_samples_scale;
