@@ -5,7 +5,7 @@ use std::rc::Rc;
 use crate::easy_task::camera::Camera;
 use crate::easy_task::color::Color;
 use crate::easy_task::material::{Dielectric, DiffuseLight, Lambertian, Material, Metal};
-use crate::easy_task::quad::Quad;
+use crate::easy_task::quad::{Quad, box_};
 use crate::easy_task::sphere::Sphere;
 use crate::easy_task::texture::{CheckerTexture, ImageTexture, NoiseTexture, Texture};
 use crate::easy_task::vec3::Vec3;
@@ -344,8 +344,18 @@ fn cornell_box() {
         Point3::new(0.0, 0.0, 555.0),
         Vec3::new(555.0, 0.0, 0.0),
         Vec3::new(0.0, 555.0, 0.0),
-        white,
+        white.clone(),
     )));
+    world.add(box_(
+        Point3::new(130.0, 0.0, 65.0),
+        Point3::new(295.0, 165.0, 230.0),
+        white.clone(),
+    ));
+    world.add(box_(
+        Point3::new(265.0, 0.0, 295.0),
+        Point3::new(430.0, 330.0, 460.0),
+        white.clone(),
+    ));
 
     let mut cam = Camera::default();
 

@@ -6,6 +6,8 @@ use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3::{Point3, Vec3, cross, dot, unit_vector};
 use std::rc::Rc;
 
+use crate::easy_task::hittable_list::HittableList;
+
 #[derive(Clone)]
 pub struct Quad {
     q: Point3,
@@ -52,10 +54,6 @@ impl Quad {
     }
 }
 impl Hittable for Quad {
-    fn bounding_box(&self) -> Aabb {
-        self.bbox
-    }
-
     fn hit(&self, r: Ray, ray_t: &mut Interval, rec: &mut HitRecord) -> bool {
         let denom = dot(self.normal, r.direction());
 
@@ -84,4 +82,63 @@ impl Hittable for Quad {
 
         true
     }
+    fn bounding_box(&self) -> Aabb {
+        self.bbox
+    }
+}
+
+pub fn box_(a: Point3, b: Point3, mat: Rc<dyn Material>) -> Rc<HittableList> {
+    let mut sides = HittableList::default();
+    let min = Point3::new(a.x().min(b.x()), a.y().min(b.y()), a.z().min(b.z()));
+    let max = Point3::new(a.x().max(b.x()), a.y().max(b.y()), a.z().max(b.z()));
+    let dx = Vec3::new(max.x() - min.x(), 0.0, 0.0);
+    let dy = Vec3::new(0.0, max.y() - min.y(), 0.0);
+    let dz = Vec3::new(0.0, 0.0, max.z() - min.z());
+    add_quad(
+        &mut sides,
+        Point3::new(min.x(), min.y(), max.z()),
+        dx,
+        dy,
+        Rc::clone(&mat),
+    );
+    add_quad(
+        &mut sides,
+        Point3::new(max.x(), min.y(), max.z()),
+        -dz,
+        dy,
+        Rc::clone(&mat),
+    );
+    add_quad(
+        &mut sides,
+        Point3::new(max.x(), min.y(), min.z()),
+        -dx,
+        dy,
+        Rc::clone(&mat),
+    );
+    add_quad(
+        &mut sides,
+        Point3::new(min.x(), min.y(), min.z()),
+        dz,
+        dy,
+        Rc::clone(&mat),
+    );
+    add_quad(
+        &mut sides,
+        Point3::new(min.x(), max.y(), max.z()),
+        dx,
+        -dz,
+        Rc::clone(&mat),
+    );
+    add_quad(
+        &mut sides,
+        Point3::new(min.x(), max.y(), min.z()),
+        dx,
+        dz,
+        Rc::clone(&mat),
+    );
+    Rc::new(sides)
+}
+
+pub fn add_quad(sides: &mut HittableList, point: Point3, a: Vec3, b: Vec3, mat: Rc<dyn Material>) {
+    sides.add(Rc::new(Quad::new(point, a, b, mat)));
 }
