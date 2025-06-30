@@ -4,6 +4,7 @@ use std::rc::Rc;
 
 use crate::easy_task::camera::Camera;
 use crate::easy_task::color::Color;
+use crate::easy_task::hittable::{Hittable, RotateY, Translate};
 use crate::easy_task::material::{Dielectric, DiffuseLight, Lambertian, Material, Metal};
 use crate::easy_task::quad::{Quad, box_};
 use crate::easy_task::sphere::Sphere;
@@ -346,16 +347,24 @@ fn cornell_box() {
         Vec3::new(0.0, 555.0, 0.0),
         white.clone(),
     )));
-    world.add(box_(
-        Point3::new(130.0, 0.0, 65.0),
-        Point3::new(295.0, 165.0, 230.0),
+
+    let mut box1: Rc<dyn Hittable> = box_(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 330.0, 165.0),
         white.clone(),
-    ));
-    world.add(box_(
-        Point3::new(265.0, 0.0, 295.0),
-        Point3::new(430.0, 330.0, 460.0),
+    );
+    box1 = Rc::new(RotateY::new(box1, 15.0));
+    box1 = Rc::new(Translate::new(box1, Vec3::new(265.0, 0.0, 295.0)));
+    world.add(box1);
+
+    let mut box2: Rc<dyn Hittable> = box_(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 165.0, 165.0),
         white.clone(),
-    ));
+    );
+    box2 = Rc::new(RotateY::new(box2, -18.0));
+    box2 = Rc::new(Translate::new(box2, Vec3::new(130.0, 0.0, 65.0)));
+    world.add(box2);
 
     let mut cam = Camera::default();
 

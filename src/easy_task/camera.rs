@@ -92,7 +92,7 @@ impl Camera {
     pub fn render(&mut self, world: &dyn Hittable) {
         self.initialize();
 
-        let path = "output/book2/image16.ppm";
+        let path = "output/book2/image17.ppm";
         let dir_path = std::path::Path::new("output/book2"); // 创建 Path 对象
         if !dir_path.exists() {
             match create_dir_all(dir_path) {
