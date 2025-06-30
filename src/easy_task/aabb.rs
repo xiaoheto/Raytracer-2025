@@ -3,7 +3,7 @@ use crate::easy_task::interval::Interval;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3::Point3;
 
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct Aabb {
     pub x: Interval,
     pub y: Interval,
@@ -12,28 +12,48 @@ pub struct Aabb {
 
 impl Aabb {
     #[allow(dead_code)]
-    pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
+    pub fn new(mut x: Interval, mut y: Interval, mut z: Interval) -> Self {
+        let delta = 0.0001;
+        if x.size() < delta {
+            x = x.expand(delta);
+        }
+        if y.size() < delta {
+            y = y.expand(delta);
+        }
+        if z.size() < delta {
+            z = z.expand(delta);
+        }
         Self { x, y, z }
     }
 
     pub fn new_point(a: Point3, b: Point3) -> Self {
-        Self {
-            x: if a[0] < b[0] {
-                Interval::new(a[0], b[0])
-            } else {
-                Interval::new(b[0], a[0])
-            },
-            y: if a[1] < b[1] {
-                Interval::new(a[1], b[1])
-            } else {
-                Interval::new(b[1], a[1])
-            },
-            z: if a[2] < b[2] {
-                Interval::new(a[2], b[2])
-            } else {
-                Interval::new(b[2], a[2])
-            },
+        let mut x = if a[0] < b[0] {
+            Interval::new(a[0], b[0])
+        } else {
+            Interval::new(b[0], a[0])
+        };
+        let mut y = if a[1] < b[1] {
+            Interval::new(a[1], b[1])
+        } else {
+            Interval::new(b[1], a[1])
+        };
+        let mut z = if a[2] < b[2] {
+            Interval::new(a[2], b[2])
+        } else {
+            Interval::new(b[2], a[2])
+        };
+
+        let delta = 0.0001;
+        if x.size() < delta {
+            x = x.expand(delta);
         }
+        if y.size() < delta {
+            y = y.expand(delta);
+        }
+        if z.size() < delta {
+            z = z.expand(delta);
+        }
+        Self { x, y, z }
     }
 
     pub fn new_aabb(box0: Aabb, box1: Aabb) -> Self {
