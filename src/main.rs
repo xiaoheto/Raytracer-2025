@@ -160,12 +160,20 @@ fn earth() {
     cam.render(&HittableList::new(globe));
 }
 
-fn perlin_spheres(){
+fn perlin_spheres() {
     let mut world = HittableList::default();
-    
+
     let pertext = Rc::new(NoiseTexture::default());
-    world.add(Rc::new(Sphere::new(Point3::new(0.0,-1000.0,0.0),1000.0,Rc::new(Lambertian::new_texture(pertext.clone())))));
-    world.add(Rc::new(Sphere::new(Point3::new(0.0,2.0,0.0),2.0,Rc::new(Lambertian::new_texture(pertext.clone())))));
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Rc::new(Lambertian::new_texture(pertext.clone())),
+    )));
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        Rc::new(Lambertian::new_texture(pertext.clone())),
+    )));
 
     let mut cam = Camera::default();
     cam.aspect_ratio = 16.0 / 9.0;
