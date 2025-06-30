@@ -7,6 +7,7 @@ pub mod hittable_list;
 pub mod interval;
 pub mod material;
 pub mod ray;
+pub mod rtw_srb_image;
 pub mod sphere;
 pub mod texture;
 pub mod vec3;

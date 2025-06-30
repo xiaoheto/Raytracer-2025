@@ -5,6 +5,7 @@ use crate::easy_task::material::Material;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3;
 use crate::easy_task::vec3::{Point3, Vec3};
+use crate::tools::rtweekend::PI;
 use std::rc::Rc;
 
 #[derive(Clone)]
@@ -42,6 +43,13 @@ impl Sphere {
             bbox: Aabb::new_aabb(box1, box2),
         }
     }
+
+    fn get_sphere_uv(&self, p: Point3) -> (f64, f64) {
+        let theta = (-p.y()).acos();
+        let phi = (-p.z()).atan2(p.x()) + PI;
+
+        (phi / (2.0 * PI), theta / PI)
+    }
 }
 
 impl Hittable for Sphere {
@@ -71,6 +79,7 @@ impl Hittable for Sphere {
         rec.p = r.at(rec.t);
         let outward_normal = (rec.p - current_center) / self.radius;
         rec.set_face_normal(r, outward_normal);
+        (rec.u, rec.v) = self.get_sphere_uv(outward_normal);
         rec.mat = Some(Rc::clone(&self.mat));
         true
     }
