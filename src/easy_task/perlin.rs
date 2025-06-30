@@ -4,7 +4,7 @@ use crate::tools::rtweekend::{random_double, random_int};
 const POINT_COUNT: usize = 256;
 #[derive(Debug, Clone)]
 pub struct Perlin {
-    ranfloat: Vec<f64>,
+    randfloat: Vec<f64>,
     perm_x: Vec<i32>,
     perm_y: Vec<i32>,
     perm_z: Vec<i32>,
@@ -12,15 +12,15 @@ pub struct Perlin {
 
 impl Default for Perlin {
     fn default() -> Self {
-        let mut ranfloat = Vec::with_capacity(POINT_COUNT);
+        let mut randfloat = Vec::with_capacity(POINT_COUNT);
         for _ in 0..POINT_COUNT {
-            ranfloat.push(random_double());
+            randfloat.push(random_double());
         }
         let perm_x = Self::perlin_generate_perm();
         let perm_y = Self::perlin_generate_perm();
         let perm_z = Self::perlin_generate_perm();
         Self {
-            ranfloat,
+            randfloat,
             perm_x,
             perm_y,
             perm_z,
@@ -34,7 +34,7 @@ impl Perlin {
         let j = ((4.0 * p.y()) as i32) & 255;
         let k = ((4.0 * p.z()) as i32) & 255;
 
-        self.ranfloat[self.perm_x[i as usize] as usize
+        self.randfloat[self.perm_x[i as usize] as usize
             ^ self.perm_y[j as usize] as usize
             ^ self.perm_z[k as usize] as usize]
     }
@@ -49,8 +49,10 @@ impl Perlin {
 
     fn permute(p: &mut [i32], n: usize) {
         for i in (0..n).rev() {
-            let target = random_int(0, i as i32);
-            p.swap(i, target as usize);
+            let target = random_int(0, i as i32) as usize;
+            let tmp = p[i];
+            p[i] = p[target];
+            p[target] = tmp;
         }
     }
 }
