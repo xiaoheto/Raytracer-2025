@@ -109,14 +109,14 @@ impl Texture for ImageTexture {
 #[derive(Default, Debug, Clone)]
 pub struct NoiseTexture {
     noise: Perlin,
-    scale: f64
+    scale: f64,
 }
 
-impl NoiseTexture{
-    pub fn new(scale: f64) -> Self{
-        Self{
+impl NoiseTexture {
+    pub fn new(scale: f64) -> Self {
+        Self {
             noise: Perlin::default(),
-            scale
+            scale,
         }
     }
 }
