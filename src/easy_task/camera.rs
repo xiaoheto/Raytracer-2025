@@ -96,7 +96,7 @@ impl Camera {
         let dir_path = std::path::Path::new("output/book2"); // 创建 Path 对象
         if !dir_path.exists() {
             match create_dir_all(dir_path) {
-                Ok(_) => println!("Directory 'output/book2' created successfully"),
+                Ok(_) => println!("create Directory 'output/book2' successfully"),
                 Err(e) => {
                     eprintln!("Failed to create directory: {}", e);
                     panic!("Failed to create directory: {}", e);
