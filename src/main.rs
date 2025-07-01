@@ -602,7 +602,7 @@ fn final_scene(image_width: usize, samples_per_pixel: usize, max_depth: usize) {
     cam.render(&world);
 }
 fn main() {
-    match 8 {
+    match 9 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
         3 => earth(),
