@@ -37,7 +37,7 @@ impl BvhNode {
             Self {
                 left: objects[start].clone(),
                 right: objects[start].clone(),
-                bbox: (*objects[start].bounding_box()).clone(),
+                bbox: *objects[start].bounding_box(),
             }
         } else if object_span == 2 {
             if comparator(&objects[start], &objects[start + 1]) == std::cmp::Ordering::Less {
@@ -96,7 +96,7 @@ impl BvhNode {
 
 impl Hittable for BvhNode {
     fn hit(&self, r: &Ray, ray_t: &Interval, rec: &mut HitRecord) -> bool {
-        let mut ray_t = ray_t.clone();
+        let mut ray_t = *ray_t;
         if !self.bbox.hit(r, &mut ray_t) {
             return false;
         }

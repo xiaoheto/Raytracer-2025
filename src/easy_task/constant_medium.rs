@@ -40,14 +40,14 @@ impl Hittable for ConstantMedium {
         let mut rec1 = HitRecord::default();
         let mut rec2 = HitRecord::default();
 
-        let mut temp_universe = Interval::new(-INFINITY, INFINITY);
-        if !self.boundry.hit(r, &mut temp_universe, &mut rec1) {
+        let temp_universe = Interval::new(-INFINITY, INFINITY);
+        if !self.boundry.hit(r, &temp_universe, &mut rec1) {
             return false;
         }
 
         if !self
             .boundry
-            .hit(r, &mut Interval::new(rec1.t + 0.0001, INFINITY), &mut rec2)
+            .hit(r, &Interval::new(rec1.t + 0.0001, INFINITY), &mut rec2)
         {
             return false;
         }

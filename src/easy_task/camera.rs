@@ -73,7 +73,7 @@ impl Camera {
             return Color::new(0.0, 0.0, 0.0);
         }
         let mut rec = HitRecord::default();
-        if !world.hit(r, &mut Interval::new(0.001, rtweekend::INFINITY), &mut rec) {
+        if !world.hit(r, &Interval::new(0.001, rtweekend::INFINITY), &mut rec) {
             return self.background;
         }
 
