@@ -3,7 +3,7 @@ use crate::easy_task::interval::Interval;
 use crate::easy_task::material::Material;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3::{Point3, Vec3, dot};
-use crate::tools::rtweekend::{INFINITY, degrees_to_radians};
+use crate::tools::rtweekend::INFINITY;
 use std::rc::Rc;
 
 #[derive(Clone, Default)]
@@ -78,42 +78,38 @@ pub struct RotateY {
 }
 
 impl RotateY {
-    pub fn new(object: Rc<dyn Hittable>, angle: f64) -> Self {
-        let radians = degrees_to_radians(angle);
+    pub fn new(p: Rc<dyn Hittable>, angle: f64) -> Self {
+        let radians = angle.to_radians();
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
-        let mut bbox = object.bounding_box();
+        let bbox = p.bounding_box();
 
-        let mut min = Point3::new(INFINITY, -INFINITY, INFINITY);
+        let mut min = Point3::new(INFINITY, INFINITY, INFINITY);
         let mut max = Point3::new(-INFINITY, -INFINITY, -INFINITY);
 
         (0..2).for_each(|i| {
-            {
-                (0..2).for_each(|j| {
-                    {
-                        (0..2).for_each(|k| {
-                            let x = i as f64 * bbox.x.max + (1.0 - i as f64) * bbox.x.min;
-                            let y = j as f64 * bbox.y.max + (1.0 - i as f64) * bbox.y.min;
-                            let z = k as f64 * bbox.z.max + (1.0 - i as f64) * bbox.z.min;
+            (0..2).for_each(|j| {
+                (0..2).for_each(|k| {
+                    let x = i as f64 * bbox.x.max + (1 - i) as f64 * bbox.x.min;
+                    let y = j as f64 * bbox.y.max + (1 - j) as f64 * bbox.y.min;
+                    let z = k as f64 * bbox.z.max + (1 - k) as f64 * bbox.z.min;
 
-                            let newx = cos_theta * x + sin_theta * z;
-                            let newz = -sin_theta * x + cos_theta * z;
+                    let newx = cos_theta * x + sin_theta * z;
+                    let newz = -sin_theta * x + cos_theta * z;
 
-                            let tester = Vec3::new(newx, y, newz);
+                    let tester = Vec3::new(newx, y, newz);
 
-                            for c in 0..3 {
-                                min[c] = min[c].min(tester[c]);
-                                max[c] = max[c].max(tester[c]);
-                            }
-                        })
-                    }
+                    (0..3).for_each(|c| {
+                        min[c] = min[c].min(tester[c]);
+                        max[c] = max[c].max(tester[c]);
+                    })
                 })
-            }
+            })
         });
 
-        bbox = Aabb::new_point(min, max);
+        let bbox = Aabb::new_point(min, max);
         Self {
-            object,
+            object: p,
             sin_theta,
             cos_theta,
             bbox,
@@ -122,36 +118,36 @@ impl RotateY {
 }
 
 impl Hittable for RotateY {
-    fn hit(&self, r: Ray, ray_t: &mut Interval, rec: &mut HitRecord) -> bool {
-        let origin = Point3::new(
-            self.cos_theta * r.origin().x() - self.sin_theta * r.origin().z(),
-            r.origin().y(),
-            self.sin_theta * r.origin().x() + self.cos_theta * r.origin().z(),
-        );
+    fn hit(&self, r: Ray, mut ray_t: &mut Interval, rec: &mut HitRecord) -> bool {
+        // 将光线从世界空间变换到对象空间
+        let mut origin = r.origin();
+        let mut direction = r.direction();
 
-        let direction = Vec3::new(
-            (self.cos_theta * r.direction().x()) - (self.sin_theta * r.direction().z()),
-            r.direction().y(),
-            (self.sin_theta * r.direction().x()) + (self.cos_theta * r.direction().z()),
-        );
+        origin[0] = self.cos_theta * r.origin()[0] - self.sin_theta * r.origin()[2];
+        origin[2] = self.sin_theta * r.origin()[0] + self.cos_theta * r.origin()[2];
+
+        direction[0] = self.cos_theta * r.direction()[0] - self.sin_theta * r.direction()[2];
+        direction[2] = self.sin_theta * r.direction()[0] + self.cos_theta * r.direction()[2];
 
         let rotated_r = Ray::new_time(origin, direction, r.time());
 
-        if !self.object.hit(rotated_r, ray_t, rec) {
+        // 在对象空间中确定是否存在交点（如果有，确定在哪里）
+        if !self.object.hit(rotated_r, &mut ray_t, rec) {
             return false;
         }
 
-        rec.p = Point3::new(
-            (self.cos_theta * rec.p.x()) + (self.sin_theta * rec.p.z()),
-            rec.p.y(),
-            (-self.sin_theta * rec.p.x()) + (self.cos_theta * rec.p.z()),
-        );
+        // 将交点从对象空间变换到世界空间
+        let mut p = rec.p;
+        p[0] = self.cos_theta * rec.p[0] + self.sin_theta * rec.p[2];
+        p[2] = -self.sin_theta * rec.p[0] + self.cos_theta * rec.p[2];
 
-        rec.normal = Vec3::new(
-            (self.cos_theta * rec.normal.x()) + (self.sin_theta * rec.normal.z()),
-            rec.normal.y(),
-            (-self.sin_theta * rec.normal.x()) + (self.cos_theta * rec.normal.z()),
-        );
+        // 将法线从对象空间变换到世界空间
+        let mut normal = rec.normal;
+        normal[0] = self.cos_theta * rec.normal[0] + self.sin_theta * rec.normal[2];
+        normal[2] = -self.sin_theta * rec.normal[0] + self.cos_theta * rec.normal[2];
+
+        rec.p = p;
+        rec.normal = normal;
 
         true
     }

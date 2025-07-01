@@ -88,57 +88,54 @@ impl Hittable for Quad {
 }
 
 pub fn box_(a: Point3, b: Point3, mat: Rc<dyn Material>) -> Rc<HittableList> {
+    // 返回一个包含两个对角顶点a和b的3D盒子（六个面）。
+
     let mut sides = HittableList::default();
+
+    // 构造两个对角顶点，具有最小和最大的坐标。
     let min = Point3::new(a.x().min(b.x()), a.y().min(b.y()), a.z().min(b.z()));
     let max = Point3::new(a.x().max(b.x()), a.y().max(b.y()), a.z().max(b.z()));
+
     let dx = Vec3::new(max.x() - min.x(), 0.0, 0.0);
     let dy = Vec3::new(0.0, max.y() - min.y(), 0.0);
     let dz = Vec3::new(0.0, 0.0, max.z() - min.z());
-    add_quad(
-        &mut sides,
+
+    sides.add(Rc::new(Quad::new(
         Point3::new(min.x(), min.y(), max.z()),
         dx,
         dy,
         Rc::clone(&mat),
-    );
-    add_quad(
-        &mut sides,
+    )));
+    sides.add(Rc::new(Quad::new(
         Point3::new(max.x(), min.y(), max.z()),
         -dz,
         dy,
         Rc::clone(&mat),
-    );
-    add_quad(
-        &mut sides,
+    )));
+    sides.add(Rc::new(Quad::new(
         Point3::new(max.x(), min.y(), min.z()),
         -dx,
         dy,
         Rc::clone(&mat),
-    );
-    add_quad(
-        &mut sides,
+    )));
+    sides.add(Rc::new(Quad::new(
         Point3::new(min.x(), min.y(), min.z()),
         dz,
         dy,
         Rc::clone(&mat),
-    );
-    add_quad(
-        &mut sides,
+    )));
+    sides.add(Rc::new(Quad::new(
         Point3::new(min.x(), max.y(), max.z()),
         dx,
         -dz,
         Rc::clone(&mat),
-    );
-    add_quad(
-        &mut sides,
-        Point3::new(min.x(), max.y(), min.z()),
+    )));
+    sides.add(Rc::new(Quad::new(
+        Point3::new(min.x(), min.y(), min.z()),
         dx,
         dz,
         Rc::clone(&mat),
-    );
-    Rc::new(sides)
-}
+    )));
 
-pub fn add_quad(sides: &mut HittableList, point: Point3, a: Vec3, b: Vec3, mat: Rc<dyn Material>) {
-    sides.add(Rc::new(Quad::new(point, a, b, mat)));
+    Rc::new(sides)
 }
