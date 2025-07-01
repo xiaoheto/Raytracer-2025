@@ -40,7 +40,7 @@ impl Sphere {
             center,
             radius: r,
             mat,
-            bbox: Aabb::new_aabb(box1, box2),
+            bbox: Aabb::new_aabb(&box1, &box2),
         }
     }
 
@@ -84,7 +84,7 @@ impl Hittable for Sphere {
         true
     }
 
-    fn bounding_box(&self) -> Aabb {
-        self.bbox
+    fn bounding_box(&self) -> &Aabb {
+        &self.bbox
     }
 }

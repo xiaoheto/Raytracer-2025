@@ -13,10 +13,9 @@ pub struct HittableList {
 impl HittableList {
     
     pub fn new(object: Rc<dyn Hittable>) -> Self {
-        let bbox = Aabb::default();
         Self {
             objects: vec![object],
-            bbox,
+            bbox: Aabb::default(),
         }
     }
     #[allow(dead_code)]
@@ -25,7 +24,7 @@ impl HittableList {
     }
 
     pub fn add(&mut self, object: Rc<dyn Hittable>) {
-        self.bbox = Aabb::new_aabb(self.bbox, object.bounding_box());
+        self.bbox = Aabb::new_aabb(&self.bbox, object.bounding_box());
         self.objects.push(object);
     }
 }
@@ -51,7 +50,7 @@ impl Hittable for HittableList {
         hit_anything
     }
 
-    fn bounding_box(&self) -> Aabb {
-        self.bbox
+    fn bounding_box(&self) -> &Aabb {
+        &self.bbox
     }
 }

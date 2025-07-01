@@ -24,7 +24,7 @@ impl Quad {
     pub fn new(q: Point3, u: Vec3, v: Vec3, mat: Rc<dyn Material>) -> Self {
         let bbox_diagonal1 = Aabb::new_point(q, q + u + v);
         let bbox_diagonal2 = Aabb::new_point(q + u, q + v);
-        let bbox = Aabb::new_aabb(bbox_diagonal1, bbox_diagonal2);
+        let bbox = Aabb::new_aabb(&bbox_diagonal1, &bbox_diagonal2);
         let n = cross(u, v);
         let normal = unit_vector(n);
         let d = dot(normal, q);
@@ -82,8 +82,8 @@ impl Hittable for Quad {
 
         true
     }
-    fn bounding_box(&self) -> Aabb {
-        self.bbox
+    fn bounding_box(&self) -> &Aabb {
+        &self.bbox
     }
 }
 

@@ -31,7 +31,7 @@ impl HitRecord {
 pub trait Hittable {
     fn hit(&self, r: Ray, ray_t: &mut Interval, rec: &mut HitRecord) -> bool;
 
-    fn bounding_box(&self) -> Aabb;
+    fn bounding_box(&self) -> &Aabb;
 }
 
 #[derive(Clone)]
@@ -53,14 +53,14 @@ impl Hittable for Translate {
         true
     }
 
-    fn bounding_box(&self) -> Aabb {
-        self.bbox
+    fn bounding_box(&self) -> &Aabb {
+        &self.bbox
     }
 }
 
 impl Translate {
     pub fn new(object: Rc<dyn Hittable>, offset: Vec3) -> Self {
-        let bbox = offset + object.bounding_box();
+        let bbox = offset + *object.bounding_box();
         Self {
             object,
             offset,
@@ -152,7 +152,7 @@ impl Hittable for RotateY {
         true
     }
 
-    fn bounding_box(&self) -> Aabb {
-        self.bbox
+    fn bounding_box(&self) -> &Aabb {
+        &self.bbox
     }
 }

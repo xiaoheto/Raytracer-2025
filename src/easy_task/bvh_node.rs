@@ -24,7 +24,7 @@ impl BvhNode {
         // 接受 &mut Vec
         let mut bbox = aabb::EMPTY;
         for object_index in src_objects.iter().take(end).skip(start) {
-            bbox = Aabb::new_aabb(bbox, object_index.bounding_box());
+            bbox = Aabb::new_aabb(&bbox, object_index.bounding_box());
         }
         let axis = bbox.longest_axis();
         let comparator = match axis {
@@ -122,7 +122,7 @@ impl Hittable for BvhNode {
         hit_left || hit_right
     }
 
-    fn bounding_box(&self) -> Aabb {
-        self.bbox
+    fn bounding_box(&self) -> &Aabb {
+        &self.bbox
     }
 }

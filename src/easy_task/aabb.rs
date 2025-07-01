@@ -57,7 +57,7 @@ impl Aabb {
         Self { x, y, z }
     }
 
-    pub fn new_aabb(box0: Aabb, box1: Aabb) -> Self {
+    pub fn new_aabb(box0: &Aabb, box1: &Aabb) -> Self {
         Self {
             x: Interval::new_interval(box0.x, box1.x),
             y: Interval::new_interval(box0.y, box1.y),
