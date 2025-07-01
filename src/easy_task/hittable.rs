@@ -118,7 +118,7 @@ impl RotateY {
 }
 
 impl Hittable for RotateY {
-    fn hit(&self, r: Ray, mut ray_t: &mut Interval, rec: &mut HitRecord) -> bool {
+    fn hit(&self, r: Ray, ray_t: &mut Interval, rec: &mut HitRecord) -> bool {
         // 将光线从世界空间变换到对象空间
         let mut origin = r.origin();
         let mut direction = r.direction();
