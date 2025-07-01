@@ -132,7 +132,7 @@ impl Hittable for RotateY {
         let rotated_r = Ray::new_time(origin, direction, r.time());
 
         // 在对象空间中确定是否存在交点（如果有，确定在哪里）
-        if !self.object.hit(rotated_r, &mut ray_t, rec) {
+        if !self.object.hit(rotated_r, ray_t, rec) {
             return false;
         }
 
