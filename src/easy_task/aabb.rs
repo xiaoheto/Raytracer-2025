@@ -65,22 +65,20 @@ impl Aabb {
         }
     }
 
-    pub fn axis_interval(&self, n: i32) -> &Interval {
-        if n == 1 {
-            &self.y
-        } else if n == 2 {
-            &self.z
-        } else {
-            &self.x
+    pub fn axis(&self, n: usize) -> &Interval {
+        match n {
+            0 => &self.x,
+            1 => &self.y,
+            _ => &self.z,
         }
     }
 
-    pub fn hit(&self, r: Ray, ray_t: &mut Interval) -> bool {
+    pub fn hit(&self, r: &Ray, ray_t: &mut Interval) -> bool {
         let ray_orig = r.origin();
         let ray_dir = r.direction();
 
         for axis in 0..3 {
-            let ax = self.axis_interval(axis as i32);
+            let ax = self.axis(axis);
             let adinv = 1.0 / ray_dir[axis];
 
             let t0 = (ax.min - ray_orig[axis]) * adinv;
@@ -142,7 +140,7 @@ impl Add<Aabb> for Vec3 {
         }
     }
 }
-
+#[allow(dead_code)]
 pub const EMPTY: Aabb = Aabb {
     x: interval::EMPTY,
     y: interval::EMPTY,

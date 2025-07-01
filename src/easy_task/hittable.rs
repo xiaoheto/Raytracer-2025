@@ -18,7 +18,7 @@ pub struct HitRecord {
 }
 
 impl HitRecord {
-    pub fn set_face_normal(&mut self, r: Ray, outward_normal: Vec3) {
+    pub fn set_face_normal(&mut self, r: &Ray, outward_normal: Vec3) {
         self.front_face = dot(r.direction(), outward_normal) < 0.0;
         self.normal = if self.front_face {
             outward_normal
@@ -29,7 +29,7 @@ impl HitRecord {
 }
 
 pub trait Hittable {
-    fn hit(&self, r: Ray, ray_t: &mut Interval, rec: &mut HitRecord) -> bool;
+    fn hit(&self, r: &Ray, ray_t: &Interval, rec: &mut HitRecord) -> bool;
 
     fn bounding_box(&self) -> &Aabb;
 }
@@ -42,9 +42,9 @@ pub struct Translate {
 }
 
 impl Hittable for Translate {
-    fn hit(&self, r: Ray, ray_t: &mut Interval, rec: &mut HitRecord) -> bool {
+    fn hit(&self, r: &Ray, ray_t: &Interval, rec: &mut HitRecord) -> bool {
         let offset_r = Ray::new_time(r.origin() - self.offset, r.direction(), r.time());
-        if !self.object.hit(offset_r, ray_t, rec) {
+        if !self.object.hit(&offset_r, ray_t, rec) {
             return false;
         }
 
@@ -118,7 +118,7 @@ impl RotateY {
 }
 
 impl Hittable for RotateY {
-    fn hit(&self, r: Ray, ray_t: &mut Interval, rec: &mut HitRecord) -> bool {
+    fn hit(&self, r: &Ray, ray_t: &Interval, rec: &mut HitRecord) -> bool {
         // 将光线从世界空间变换到对象空间
         let mut origin = r.origin();
         let mut direction = r.direction();
@@ -132,7 +132,7 @@ impl Hittable for RotateY {
         let rotated_r = Ray::new_time(origin, direction, r.time());
 
         // 在对象空间中确定是否存在交点（如果有，确定在哪里）
-        if !self.object.hit(rotated_r, ray_t, rec) {
+        if !self.object.hit(&rotated_r, ray_t, rec) {
             return false;
         }
 

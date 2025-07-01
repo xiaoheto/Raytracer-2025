@@ -68,7 +68,7 @@ impl Default for Camera {
 }
 
 impl Camera {
-    fn ray_color(&self, r: Ray, depth: i32, world: &dyn Hittable) -> Color {
+    fn ray_color(&self, r: &Ray, depth: i32, world: &dyn Hittable) -> Color {
         if depth < 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
@@ -82,17 +82,17 @@ impl Camera {
         let color_from_emission = rec.mat.clone().unwrap().emitted(rec.u, rec.v, rec.p);
 
         if let Some(mat) = rec.mat.clone() {
-            if !mat.scatter(r, rec, &mut attenuation, &mut scattered) {
+            if !mat.scatter(*r, rec, &mut attenuation, &mut scattered) {
                 return color_from_emission;
             }
         }
-        let color_from_scatter = attenuation * self.ray_color(scattered, depth - 1, world);
+        let color_from_scatter = attenuation * self.ray_color(&scattered, depth - 1, world);
         color_from_emission + color_from_scatter
     }
     pub fn render(&mut self, world: &dyn Hittable) {
         self.initialize();
 
-        let path = "output/book2/image20.ppm";
+        let path = "output/book2/image19.ppm";
         let dir_path = std::path::Path::new("output/book2"); // 创建 Path 对象
         if !dir_path.exists() {
             match create_dir_all(dir_path) {
@@ -116,7 +116,7 @@ impl Camera {
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
                 for _sample in 0..self.samples_per_pixel {
                     let r: Ray = self.get_ray(i, j);
-                    pixel_color += self.ray_color(r, self.max_depth, world);
+                    pixel_color += self.ray_color(&r, self.max_depth, world);
                 }
 
                 pixel_color *= self.pixel_samples_scale;

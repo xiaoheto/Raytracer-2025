@@ -23,7 +23,6 @@ impl Ray {
         }
     }
 
-    
     pub fn origin(&self) -> Point3 {
         self.orig
     }
@@ -36,7 +35,6 @@ impl Ray {
         self.tm
     }
 
-    
     pub fn at(&self, t: f64) -> Point3 {
         self.orig + self.dir * t
     }
