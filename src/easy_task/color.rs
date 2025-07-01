@@ -6,6 +6,7 @@ use vec3::Vec3;
 pub type Color = Vec3;
 
 impl Color {
+    //映射每个颜色的分量并写到out中，分别是 红/绿/蓝
     pub fn write_color(&self, out: &mut dyn Write, pixel_color: Color) -> std::io::Result<()> {
         let mut r = pixel_color.x();
         let mut g = pixel_color.y();

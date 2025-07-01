@@ -175,12 +175,12 @@ impl Vec3 {
 
 pub type Point3 = Vec3;
 
-#[allow(dead_code)]
+//点乘
 pub fn dot(u: Vec3, v: Vec3) -> f64 {
     u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2]
 }
 
-#[allow(dead_code)]
+//叉乘
 pub fn cross(u: Vec3, v: Vec3) -> Vec3 {
     Vec3 {
         e: [

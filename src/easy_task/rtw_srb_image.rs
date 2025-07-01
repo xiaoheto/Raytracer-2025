@@ -1,5 +1,4 @@
 use stb_image::image;
-
 pub const BYTES_PER_PIXEL: usize = 3;
 static MAGENTA: [u8; BYTES_PER_PIXEL] = [255, 0, 255];
 

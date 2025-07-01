@@ -11,9 +11,9 @@ pub struct HittableList {
 }
 
 impl HittableList {
-    #[allow(dead_code)]
+    
     pub fn new(object: Rc<dyn Hittable>) -> Self {
-        let bbox = object.bounding_box();
+        let bbox = Aabb::default();
         Self {
             objects: vec![object],
             bbox,
