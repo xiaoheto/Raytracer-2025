@@ -5,7 +5,7 @@ use crate::easy_task::texture::{SolidColor, Texture};
 use crate::easy_task::vec3::{
     Point3, Vec3, dot, random_unit_vector, reflect, refract, unit_vector,
 };
-use crate::tools::rtweekend::random_double;
+use crate::tools::rtweekend::{PI, random_double};
 use std::sync::Arc;
 
 pub trait Material {
@@ -21,6 +21,10 @@ pub trait Material {
 
     fn emitted(&self, _u: f64, _v: f64, _p: Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
+    }
+
+    fn scattering_pdf(&self, _r_in: &Ray, _r_ec: &HitRecord, _scattered: &Ray) -> f64 {
+        0.0
     }
 }
 
@@ -52,6 +56,11 @@ impl Material for Lambertian {
         *scattered = Ray::new_time(rec.p, scatter_direction, r_in.time());
         *attenuation = self.tex.value(rec.u, rec.v, rec.p);
         true
+    }
+
+    fn scattering_pdf(&self, _r_in: &Ray, rec: &HitRecord, scattered: &Ray) -> f64 {
+        let cos_theta = dot(rec.normal, unit_vector(scattered.direction()));
+        if cos_theta < 0.0 { 0.0 } else { cos_theta / PI }
     }
 }
 
