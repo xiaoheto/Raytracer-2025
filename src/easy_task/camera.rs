@@ -37,6 +37,8 @@ pub struct Camera {
     w: Vec3,
     defocus_disk_u: Vec3,
     defocus_disk_v: Vec3,
+    sqrt_spp: i32,
+    recip_sqrt_spp: f64,
 }
 
 impl Default for Camera {
@@ -66,6 +68,8 @@ impl Default for Camera {
             w: Vec3::default(),
             defocus_disk_u: Vec3::default(),
             defocus_disk_v: Vec3::default(),
+            sqrt_spp: 0,
+            recip_sqrt_spp: 0.0,
         }
     }
 }
@@ -95,7 +99,7 @@ impl Camera {
     pub fn render(&mut self, world: Arc<dyn Hittable + Send + Sync>) {
         self.initialize();
 
-        let path = "output/book2/image19.ppm";
+        let path = "output/book3/image1.ppm";
         let dir_path = std::path::Path::new("output/book2");
         if !dir_path.exists() {
             create_dir_all(dir_path).expect("Failed to create directory");
@@ -111,8 +115,9 @@ impl Camera {
 
         let image_width = self.image_width;
         let image_height = self.image_height;
-        let samples_per_pixel = self.samples_per_pixel;
+        // let samples_per_pixel = self.samples_per_pixel;
         let max_depth = self.max_depth;
+        let sqrt_spp = self.sqrt_spp;
         let camera = *self;
         let world = Arc::clone(&world);
 
@@ -125,9 +130,11 @@ impl Camera {
                     let mut row = String::new();
                     for i in 0..image_width {
                         let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                        for _ in 0..samples_per_pixel {
-                            let r = camera.get_ray(i, j);
-                            pixel_color += camera.ray_color(&r, max_depth, &world);
+                        for s_j in 0..sqrt_spp {
+                            for s_i in 0..sqrt_spp {
+                                let r = camera.get_ray(i, j, s_i, s_j);
+                                pixel_color += camera.ray_color(&r, max_depth, &world);
+                            }
                         }
 
                         pixel_color *= camera.pixel_samples_scale;
@@ -170,7 +177,9 @@ impl Camera {
             self.image_height
         };
 
-        self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64;
+        self.sqrt_spp = (self.samples_per_pixel as f64).sqrt() as i32;
+        self.pixel_samples_scale = 1.0 / (self.sqrt_spp * self.sqrt_spp) as f64;
+        self.recip_sqrt_spp = 1.0 / self.sqrt_spp as f64;
 
         self.center = self.lookfrom;
 
@@ -203,12 +212,19 @@ impl Camera {
         self.defocus_disk_v = self.v * defocus_radius;
     }
 
+    #[allow(dead_code)]
     fn sample_square() -> Vec3 {
         Vec3::new(random_double() - 0.5, random_double() - 0.5, 0.0)
     }
 
-    fn get_ray(&self, i: i32, j: i32) -> Ray {
-        let offset: Vec3 = Self::sample_square();
+    fn sample_square_stratified(&self, s_i: i32, s_j: i32) -> Vec3 {
+        let px = ((s_i as f64 + random_double()) * self.recip_sqrt_spp) - 0.5;
+        let py = ((s_j as f64 + random_double()) * self.recip_sqrt_spp) - 0.5;
+
+        Vec3::new(px, py, 0.0)
+    }
+    fn get_ray(&self, i: i32, j: i32, s_i: i32, s_j: i32) -> Ray {
+        let offset: Vec3 = self.sample_square_stratified(s_i, s_j);
         let pixel_sample = self.pixel00_loc
             + ((i as f64 + offset.x()) * self.pixel_delta_u)
             + ((j as f64 + offset.y()) * self.pixel_delta_v);

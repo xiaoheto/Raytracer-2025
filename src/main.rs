@@ -326,39 +326,40 @@ fn cornell_box() {
 
     world.add(Arc::new(Quad::new(
         Point3::new(555.0, 0.0, 0.0),
-        Vec3::new(0.0, 555.0, 0.0),
         Vec3::new(0.0, 0.0, 555.0),
+        Vec3::new(0.0, 555.0, 0.0),
         green,
     )));
     world.add(Arc::new(Quad::new(
-        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(0.0, 0.0, 555.0),
+        Vec3::new(0.0, 0.0, -555.0),
         Vec3::new(0.0, 555.0, 0.0),
-        Vec3::new(0.0, 0.0, 555.0),
         red,
     )));
     world.add(Arc::new(Quad::new(
-        Point3::new(343.0, 554.0, 332.0),
-        Vec3::new(-130.0, 0.0, 0.0),
-        Vec3::new(0.0, 0.0, -105.0),
-        light,
-    )));
-    world.add(Arc::new(Quad::new(
-        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(0.0, 555.0, 0.0),
         Vec3::new(555.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, 555.0),
-        Arc::clone(&white),
-    )));
-    world.add(Arc::new(Quad::new(
-        Point3::new(555.0, 555.0, 555.0),
-        Vec3::new(-555.0, 0.0, 0.0),
-        Vec3::new(0.0, 0.0, -555.0),
         Arc::clone(&white),
     )));
     world.add(Arc::new(Quad::new(
         Point3::new(0.0, 0.0, 555.0),
         Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -555.0),
+        Arc::clone(&white),
+    )));
+    world.add(Arc::new(Quad::new(
+        Point3::new(555.0, 0.0, 555.0),
+        Vec3::new(-555.0, 0.0, 0.0),
         Vec3::new(0.0, 555.0, 0.0),
         white.clone(),
+    )));
+
+    world.add(Arc::new(Quad::new(
+        Point3::new(213.0, 554.0, 227.0),
+        Vec3::new(130.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 105.0),
+        light,
     )));
 
     let mut box1: Arc<dyn Hittable> = box_(
@@ -383,7 +384,7 @@ fn cornell_box() {
 
     cam.aspect_ratio = 1.0;
     cam.image_width = 600;
-    cam.samples_per_pixel = 200;
+    cam.samples_per_pixel = 64;
     cam.max_depth = 50;
     cam.background = Color::default();
 
@@ -624,7 +625,7 @@ fn final_scene(image_width: usize, samples_per_pixel: usize, max_depth: usize) {
     cam.render(world);
 }
 fn main() {
-    match 9 {
+    match 7 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
         3 => earth(),
