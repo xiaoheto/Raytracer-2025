@@ -7,30 +7,34 @@ use crate::easy_task::ray::Ray;
 use crate::easy_task::texture::Texture;
 use crate::easy_task::vec3::Vec3;
 use crate::tools::rtweekend::{INFINITY, random_double};
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct ConstantMedium {
-    pub boundry: Rc<dyn Hittable>,
+    pub boundry: Arc<dyn Hittable + Send + Sync>,
     pub neg_inv_density: f64,
-    pub phase_function: Rc<dyn Material>,
+    pub phase_function: Arc<dyn Material + Send + Sync>,
 }
 
 impl ConstantMedium {
     #[allow(dead_code)]
-    pub fn new_texture(boundry: Rc<dyn Hittable>, density: f64, tex: Rc<dyn Texture>) -> Self {
+    pub fn new_texture(
+        boundry: Arc<dyn Hittable + Send + Sync>,
+        density: f64,
+        tex: Arc<dyn Texture + Send + Sync>,
+    ) -> Self {
         Self {
             boundry,
             neg_inv_density: -1.0 / density,
-            phase_function: Rc::new(Isotropic::new(tex)),
+            phase_function: Arc::new(Isotropic::new(tex)),
         }
     }
 
-    pub fn new_color(boundry: Rc<dyn Hittable>, density: f64, albedo: Color) -> Self {
+    pub fn new_color(boundry: Arc<dyn Hittable>, density: f64, albedo: Color) -> Self {
         Self {
             boundry,
             neg_inv_density: -1.0 / density,
-            phase_function: Rc::new(Isotropic::new_color(albedo)),
+            phase_function: Arc::new(Isotropic::new_color(albedo)),
         }
     }
 }
@@ -80,7 +84,7 @@ impl Hittable for ConstantMedium {
 
         rec.normal = Vec3::new(1.0, 0.0, 0.0);
         rec.front_face = true;
-        rec.mat = Some(Rc::clone(&self.phase_function));
+        rec.mat = Some(Arc::clone(&self.phase_function));
 
         true
     }

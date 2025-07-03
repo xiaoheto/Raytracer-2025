@@ -4,12 +4,12 @@ use crate::easy_task::hittable_list::HittableList;
 use crate::easy_task::interval::Interval;
 use crate::easy_task::ray::Ray;
 use crate::tools::rtweekend::random_int;
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct BvhNode {
-    left: Rc<dyn Hittable>,
-    right: Rc<dyn Hittable>,
+    left: Arc<dyn Hittable + Send + Sync>,
+    right: Arc<dyn Hittable + Send + Sync>,
     bbox: Aabb,
 }
 
@@ -20,7 +20,11 @@ impl BvhNode {
         Self::new(&mut list.objects, 0, len)
     }
 
-    pub fn new(src_objects: &mut Vec<Rc<dyn Hittable>>, start: usize, end: usize) -> Self {
+    pub fn new(
+        src_objects: &mut Vec<Arc<dyn Hittable + Send + Sync>>,
+        start: usize,
+        end: usize,
+    ) -> Self {
         let axis = random_int(0, 2);
 
         let comparator = match axis {
@@ -63,15 +67,15 @@ impl BvhNode {
             objects[start..end].sort_by(comparator);
 
             let mid = start + object_span / 2;
-            let left = Rc::new(Self::new(objects, start, mid));
-            let right = Rc::new(Self::new(objects, mid, end));
+            let left = Arc::new(Self::new(objects, start, mid));
+            let right = Arc::new(Self::new(objects, mid, end));
             let bbox = Aabb::new_aabb(left.bounding_box(), right.bounding_box());
             Self { left, right, bbox }
         }
     }
     fn box_compare(
-        a: &Rc<dyn Hittable>,
-        b: &Rc<dyn Hittable>,
+        a: &Arc<dyn Hittable + Send + Sync>,
+        b: &Arc<dyn Hittable + Send + Sync>,
         axis_index: usize,
     ) -> std::cmp::Ordering {
         a.bounding_box()
@@ -81,15 +85,24 @@ impl BvhNode {
             .unwrap()
     }
 
-    fn box_x_compare(a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>) -> std::cmp::Ordering {
+    fn box_x_compare(
+        a: &Arc<dyn Hittable + Send + Sync>,
+        b: &Arc<dyn Hittable + Send + Sync>,
+    ) -> std::cmp::Ordering {
         Self::box_compare(a, b, 0)
     }
 
-    fn box_y_compare(a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>) -> std::cmp::Ordering {
+    fn box_y_compare(
+        a: &Arc<dyn Hittable + Send + Sync>,
+        b: &Arc<dyn Hittable + Send + Sync>,
+    ) -> std::cmp::Ordering {
         Self::box_compare(a, b, 1)
     }
 
-    fn box_z_compare(a: &Rc<dyn Hittable>, b: &Rc<dyn Hittable>) -> std::cmp::Ordering {
+    fn box_z_compare(
+        a: &Arc<dyn Hittable + Send + Sync>,
+        b: &Arc<dyn Hittable + Send + Sync>,
+    ) -> std::cmp::Ordering {
         Self::box_compare(a, b, 2)
     }
 }

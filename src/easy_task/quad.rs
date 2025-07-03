@@ -1,12 +1,11 @@
 use crate::easy_task::aabb::Aabb;
 use crate::easy_task::hittable::{HitRecord, Hittable};
+use crate::easy_task::hittable_list::HittableList;
 use crate::easy_task::interval::Interval;
 use crate::easy_task::material::Material;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3::{Point3, Vec3, cross, dot, unit_vector};
-use std::rc::Rc;
-
-use crate::easy_task::hittable_list::HittableList;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Quad {
@@ -14,14 +13,14 @@ pub struct Quad {
     u: Vec3,
     v: Vec3,
     w: Vec3,
-    mat: Rc<dyn Material>,
+    mat: Arc<dyn Material + Send + Sync>,
     bbox: Aabb,
     normal: Vec3,
     d: f64,
 }
 
 impl Quad {
-    pub fn new(q: Point3, u: Vec3, v: Vec3, mat: Rc<dyn Material>) -> Self {
+    pub fn new(q: Point3, u: Vec3, v: Vec3, mat: Arc<dyn Material + Send + Sync>) -> Self {
         let bbox_diagonal1 = Aabb::new_point(q, q + u + v);
         let bbox_diagonal2 = Aabb::new_point(q + u, q + v);
         let bbox = Aabb::new_aabb(&bbox_diagonal1, &bbox_diagonal2);
@@ -87,7 +86,7 @@ impl Hittable for Quad {
     }
 }
 
-pub fn box_(a: Point3, b: Point3, mat: Rc<dyn Material>) -> Rc<HittableList> {
+pub fn box_(a: Point3, b: Point3, mat: Arc<dyn Material + Send + Sync>) -> Arc<HittableList> {
     // 返回一个包含两个对角顶点a和b的3D盒子（六个面）。
 
     let mut sides = HittableList::default();
@@ -100,42 +99,42 @@ pub fn box_(a: Point3, b: Point3, mat: Rc<dyn Material>) -> Rc<HittableList> {
     let dy = Vec3::new(0.0, max.y() - min.y(), 0.0);
     let dz = Vec3::new(0.0, 0.0, max.z() - min.z());
 
-    sides.add(Rc::new(Quad::new(
+    sides.add(Arc::new(Quad::new(
         Point3::new(min.x(), min.y(), max.z()),
         dx,
         dy,
-        Rc::clone(&mat),
+        Arc::clone(&mat),
     )));
-    sides.add(Rc::new(Quad::new(
+    sides.add(Arc::new(Quad::new(
         Point3::new(max.x(), min.y(), max.z()),
         -dz,
         dy,
-        Rc::clone(&mat),
+        Arc::clone(&mat),
     )));
-    sides.add(Rc::new(Quad::new(
+    sides.add(Arc::new(Quad::new(
         Point3::new(max.x(), min.y(), min.z()),
         -dx,
         dy,
-        Rc::clone(&mat),
+        Arc::clone(&mat),
     )));
-    sides.add(Rc::new(Quad::new(
+    sides.add(Arc::new(Quad::new(
         Point3::new(min.x(), min.y(), min.z()),
         dz,
         dy,
-        Rc::clone(&mat),
+        Arc::clone(&mat),
     )));
-    sides.add(Rc::new(Quad::new(
+    sides.add(Arc::new(Quad::new(
         Point3::new(min.x(), max.y(), max.z()),
         dx,
         -dz,
-        Rc::clone(&mat),
+        Arc::clone(&mat),
     )));
-    sides.add(Rc::new(Quad::new(
+    sides.add(Arc::new(Quad::new(
         Point3::new(min.x(), min.y(), min.z()),
         dx,
         dz,
-        Rc::clone(&mat),
+        Arc::clone(&mat),
     )));
 
-    Rc::new(sides)
+    Arc::new(sides)
 }

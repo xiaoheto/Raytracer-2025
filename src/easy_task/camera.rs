@@ -6,9 +6,12 @@ use crate::easy_task::vec3;
 use crate::easy_task::vec3::{Point3, Vec3, random_in_unit_disk};
 use crate::tools::rtweekend;
 use crate::tools::rtweekend::{degrees_to_radians, random_double};
+use crossbeam::channel;
 use std::fs::{File, create_dir_all};
 use std::io::Write;
+use std::sync::Arc;
 
+#[derive(Clone, Copy, Debug)]
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: i32,
@@ -68,7 +71,7 @@ impl Default for Camera {
 }
 
 impl Camera {
-    fn ray_color(&self, r: &Ray, depth: i32, world: &dyn Hittable) -> Color {
+    fn ray_color(&self, r: &Ray, depth: i32, world: &Arc<dyn Hittable + Send + Sync>) -> Color {
         if depth < 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
@@ -89,54 +92,71 @@ impl Camera {
         let color_from_scatter = attenuation * self.ray_color(&scattered, depth - 1, world);
         color_from_emission + color_from_scatter
     }
-    pub fn render(&mut self, world: &dyn Hittable) {
+    pub fn render(&mut self, world: Arc<dyn Hittable + Send + Sync>) {
         self.initialize();
 
         let path = "output/book2/image19.ppm";
-        let dir_path = std::path::Path::new("output/book2"); // 创建 Path 对象
+        let dir_path = std::path::Path::new("output/book2");
         if !dir_path.exists() {
-            match create_dir_all(dir_path) {
-                Ok(_) => println!("create Directory 'output/book2' successfully"),
-                Err(e) => {
-                    eprintln!("Failed to create directory: {}", e);
-                    panic!("Failed to create directory: {}", e);
-                }
-            }
+            create_dir_all(dir_path).expect("Failed to create directory");
         }
-
         let mut file = File::create(path).expect("Failed to create file");
+
         // 写入 PPM 文件头
         writeln!(file, "P3").unwrap();
         writeln!(file, "{} {}", self.image_width, self.image_height).unwrap();
         writeln!(file, "255").unwrap();
 
-        for j in 0..self.image_height {
-            println!("\rScanlines remaining: {} ", self.image_height - j);
-            for i in 0..self.image_width {
-                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                for _sample in 0..self.samples_per_pixel {
-                    let r: Ray = self.get_ray(i, j);
-                    pixel_color += self.ray_color(&r, self.max_depth, world);
-                }
+        let (tx, rx) = channel::unbounded();
 
-                pixel_color *= self.pixel_samples_scale;
+        let image_width = self.image_width;
+        let image_height = self.image_height;
+        let samples_per_pixel = self.samples_per_pixel;
+        let max_depth = self.max_depth;
+        let camera = *self;
+        let world = Arc::clone(&world);
 
-                let mut r = pixel_color.x();
-                let mut g = pixel_color.y();
-                let mut b = pixel_color.z();
+        // 多线程
+        crossbeam::scope(|scope| {
+            for j in 0..image_height {
+                let tx = tx.clone();
+                let world = Arc::clone(&world);
+                scope.spawn(move |_| {
+                    let mut row = String::new();
+                    for i in 0..image_width {
+                        let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                        for _ in 0..samples_per_pixel {
+                            let r = camera.get_ray(i, j);
+                            pixel_color += camera.ray_color(&r, max_depth, &world);
+                        }
 
-                r = linear_to_gamma(r);
-                g = linear_to_gamma(g);
-                b = linear_to_gamma(b);
+                        pixel_color *= camera.pixel_samples_scale;
+                        let mut r = pixel_color.x();
+                        let mut g = pixel_color.y();
+                        let mut b = pixel_color.z();
+                        r = linear_to_gamma(r);
+                        g = linear_to_gamma(g);
+                        b = linear_to_gamma(b);
 
-                let intensity = Interval::new(0.000, 0.999);
-                let r_val = (256.0 * intensity.clamp(r)) as i32;
-                let g_val = (256.0 * intensity.clamp(g)) as i32;
-                let b_val = (256.0 * intensity.clamp(b)) as i32;
-
-                // 将像素的 RGB 值写入文件
-                writeln!(file, "{} {} {}", r_val, g_val, b_val).unwrap();
+                        let intensity = Interval::new(0.000, 0.999);
+                        let r_val = (256.0 * intensity.clamp(r)) as i32;
+                        let g_val = (256.0 * intensity.clamp(g)) as i32;
+                        let b_val = (256.0 * intensity.clamp(b)) as i32;
+                        row += &format!("{} {} {}\n", r_val, g_val, b_val);
+                    }
+                    tx.send((j, row)).expect("send failed");
+                });
             }
+            drop(tx);
+        })
+        .unwrap();
+
+        // 按行号收集输出，排序后写文件
+        let mut rows: Vec<(i32, String)> = rx.iter().collect();
+        rows.sort_by_key(|k| k.0);
+
+        for (_j, line) in rows {
+            file.write_all(line.as_bytes()).unwrap();
         }
 
         println!("\nImage saved as \"{}\"", path);

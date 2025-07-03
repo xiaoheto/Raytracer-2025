@@ -6,7 +6,7 @@ use crate::easy_task::vec3::{
     Point3, Vec3, dot, random_unit_vector, reflect, refract, unit_vector,
 };
 use crate::tools::rtweekend::random_double;
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub trait Material {
     fn scatter(
@@ -25,17 +25,17 @@ pub trait Material {
 }
 
 pub struct Lambertian {
-    tex: Rc<dyn Texture>,
+    tex: Arc<dyn Texture>,
 }
 
 impl Lambertian {
     pub fn new(a: Color) -> Self {
         Self {
-            tex: Rc::new(SolidColor::new(a)),
+            tex: Arc::new(SolidColor::new(a)),
         }
     }
 
-    pub fn new_texture(tex: Rc<dyn Texture>) -> Self {
+    pub fn new_texture(tex: Arc<dyn Texture>) -> Self {
         Self { tex }
     }
 }
@@ -137,7 +137,7 @@ impl Dielectric {
 
 #[derive(Clone)]
 pub struct DiffuseLight {
-    tex: Rc<dyn Texture>,
+    tex: Arc<dyn Texture>,
 }
 
 impl Material for DiffuseLight {
@@ -158,31 +158,31 @@ impl Material for DiffuseLight {
 
 impl DiffuseLight {
     #[allow(dead_code)]
-    pub fn new(tex: Rc<dyn Texture>) -> Self {
+    pub fn new(tex: Arc<dyn Texture>) -> Self {
         Self { tex }
     }
 
     pub fn new_color(emit: Color) -> Self {
         Self {
-            tex: Rc::new(SolidColor::new(emit)),
+            tex: Arc::new(SolidColor::new(emit)),
         }
     }
 }
 
 #[derive(Clone)]
 pub struct Isotropic {
-    pub albedo: Rc<dyn Texture>,
+    pub albedo: Arc<dyn Texture>,
 }
 
 impl Isotropic {
     #[allow(dead_code)]
-    pub fn new(a: Rc<dyn Texture>) -> Self {
+    pub fn new(a: Arc<dyn Texture + Send + Sync>) -> Self {
         Self { albedo: a }
     }
 
     pub fn new_color(c: Color) -> Self {
         Self {
-            albedo: Rc::new(SolidColor::new(c)),
+            albedo: Arc::new(SolidColor::new(c)),
         }
     }
 }

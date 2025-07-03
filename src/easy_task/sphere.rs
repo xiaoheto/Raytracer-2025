@@ -6,18 +6,18 @@ use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3;
 use crate::easy_task::vec3::{Point3, Vec3};
 use crate::tools::rtweekend::PI;
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Sphere {
     center: Ray,
     radius: f64,
-    mat: Rc<dyn Material>,
+    mat: Arc<dyn Material + Send + Sync>,
     bbox: Aabb,
 }
 
 impl Sphere {
-    pub fn new(static_center: Point3, radius: f64, mat: Rc<dyn Material>) -> Self {
+    pub fn new(static_center: Point3, radius: f64, mat: Arc<dyn Material + Send + Sync>) -> Self {
         let center = Ray::new(static_center, Vec3::default());
         let r = radius.max(0.0);
         let rvec = Vec3::new(radius, radius, radius);
@@ -30,7 +30,12 @@ impl Sphere {
         }
     }
 
-    pub fn new_move(center1: Point3, center2: Point3, radius: f64, mat: Rc<dyn Material>) -> Self {
+    pub fn new_move(
+        center1: Point3,
+        center2: Point3,
+        radius: f64,
+        mat: Arc<dyn Material + Send + Sync>,
+    ) -> Self {
         let center = Ray::new(center1, center2 - center1);
         let r = radius.max(0.0);
         let rvec = Vec3::new(radius, radius, radius);
@@ -80,7 +85,7 @@ impl Hittable for Sphere {
         let outward_normal = (rec.p - current_center) / self.radius;
         rec.set_face_normal(r, outward_normal);
         (rec.u, rec.v) = self.get_sphere_uv(outward_normal);
-        rec.mat = Some(Rc::clone(&self.mat));
+        rec.mat = Some(Arc::clone(&self.mat));
         true
     }
 
