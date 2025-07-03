@@ -206,7 +206,7 @@ pub fn random_unit_vector() -> Vec3 {
 }
 #[allow(dead_code)]
 pub fn random_on_hemisphere(normal: Vec3) -> Vec3 {
-    let on_unit_sphere = random_unit_vector();
+    let on_unit_sphere = random_in_unit_disk();
     if dot(on_unit_sphere, normal) > 0.0 {
         on_unit_sphere
     } else {

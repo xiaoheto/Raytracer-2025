@@ -5,7 +5,7 @@ use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3;
 use crate::easy_task::vec3::{Point3, Vec3, random_in_unit_disk};
 use crate::tools::rtweekend;
-use crate::tools::rtweekend::{PI, degrees_to_radians, random_double};
+use crate::tools::rtweekend::{degrees_to_radians, random_double};
 use crossbeam::channel;
 use std::fs::{File, create_dir_all};
 use std::io::Write;
@@ -94,7 +94,7 @@ impl Camera {
             }
 
             let scattering_pdf = mat.scattering_pdf(r, &rec, &scattered);
-            let pdf_value = 1.0 / (2.0 * PI);
+            let pdf_value = scattering_pdf;
             let color_from_scatter =
                 (attenuation * scattering_pdf * self.ray_color(&scattered, depth - 1, world))
                     / pdf_value;
@@ -105,7 +105,7 @@ impl Camera {
     pub fn render(&mut self, world: Arc<dyn Hittable + Send + Sync>) {
         self.initialize();
 
-        let path = "output/book3/image3.ppm";
+        let path = "output/book3/image4.ppm";
         let dir_path = std::path::Path::new("output/book3");
         if !dir_path.exists() {
             create_dir_all(dir_path).expect("Failed to create directory");
