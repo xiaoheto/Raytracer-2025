@@ -1,5 +1,7 @@
+mod complicated_task;
 mod easy_task;
 mod tools;
+
 use crate::easy_task::bvh_node::BvhNode;
 use crate::easy_task::camera::Camera;
 use crate::easy_task::color::Color;

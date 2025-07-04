@@ -1,6 +1,6 @@
 use crate::easy_task::vec3::{Vec3, cross, unit_vector};
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct Onb {
     pub axis: [Vec3; 3],
 }
@@ -34,6 +34,6 @@ impl Onb {
     }
 
     pub fn transform(&self, v: Vec3) -> Vec3 {
-        v[0] * self.axis[0] + v[1] * self.axis[1] + v[2] * self.axis[2]
+        (v[0] * self.axis[0]) + (v[1] * self.axis[1]) + (v[2] * self.axis[2])
     }
 }
