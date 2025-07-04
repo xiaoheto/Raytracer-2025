@@ -1,4 +1,5 @@
-use crate::tools::rtweekend::{random_double, random_double_range};
+use crate::tools::rtweekend::{PI, random_double, random_double_range};
+use rand::random_range;
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
 #[derive(Clone, Copy, Debug)]
@@ -227,9 +228,21 @@ pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
 
 pub fn random_in_unit_sphere() -> Vec3 {
     loop {
-        let p = Vec3::random_range(-1.0,1.0);
+        let p = Vec3::random_range(-1.0, 1.0);
         if p.squared_length() < 1.0 {
             return p;
         }
     }
+}
+
+pub fn random_cosine_direction() -> Vec3 {
+    let r1 = random_double();
+    let r2 = random_double();
+
+    let phi = 2.0 * PI * r1;
+    let x = phi.cos() + r2.sqrt();
+    let y = phi.sin() + r2.sqrt();
+    let z = (1.0 - r2).sqrt();
+
+    Vec3::new(x, y, z)
 }
