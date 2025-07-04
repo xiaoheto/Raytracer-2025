@@ -3,7 +3,7 @@ use crate::easy_task::hittable::{HitRecord, Hittable};
 use crate::easy_task::interval::Interval;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3;
-use crate::easy_task::vec3::{Point3, Vec3, random_in_unit_disk};
+use crate::easy_task::vec3::{Point3, Vec3, random_in_unit_sphere};
 use crate::tools::rtweekend;
 use crate::tools::rtweekend::{degrees_to_radians, random_double};
 use crossbeam::channel;
@@ -89,7 +89,7 @@ impl Camera {
         let color_from_emission = rec.mat.clone().unwrap().emitted(rec.u, rec.v, rec.p);
 
         if let Some(mat) = rec.mat.clone() {
-            if !mat.scatter(*r, rec.clone(), &mut attenuation, &mut scattered) {
+            if !mat.scatter(r, &rec.clone(), &mut attenuation, &mut scattered) {
                 return color_from_emission;
             }
 
@@ -162,7 +162,7 @@ impl Camera {
             }
             drop(tx);
         })
-        .unwrap();
+            .unwrap();
 
         // 按行号收集输出，排序后写文件
         let mut rows: Vec<(i32, String)> = rx.iter().collect();
@@ -247,7 +247,7 @@ impl Camera {
     }
 
     fn defocus_disk_sample(&self) -> Point3 {
-        let p = random_in_unit_disk();
+        let p = random_in_unit_sphere();
         self.center + (p[0] * self.defocus_disk_u) + (p[1] * self.defocus_disk_v)
     }
 }

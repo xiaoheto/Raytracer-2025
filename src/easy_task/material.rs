@@ -2,17 +2,15 @@ use crate::easy_task::color::Color;
 use crate::easy_task::hittable::HitRecord;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::texture::{SolidColor, Texture};
-use crate::easy_task::vec3::{
-    Point3, Vec3, dot, random_on_hemisphere, random_unit_vector, reflect, refract, unit_vector,
-};
+use crate::easy_task::vec3::{Point3, Vec3, dot, random_unit_vector, reflect, refract, unit_vector, random_on_hemisphere};
 use crate::tools::rtweekend::{PI, random_double};
 use std::sync::Arc;
 
 pub trait Material {
     fn scatter(
         &self,
-        _r_in: Ray,
-        _rec: HitRecord,
+        _r_in: &Ray,
+        _rec: &HitRecord,
         _attenuation: &mut Color,
         _scattered: &mut Ray,
     ) -> bool {
@@ -47,13 +45,13 @@ impl Lambertian {
 impl Material for Lambertian {
     fn scatter(
         &self,
-        r_in: Ray,
-        rec: HitRecord,
+        r_in: &Ray,
+        rec: &HitRecord,
         attenuation: &mut Color,
         scattered: &mut Ray,
     ) -> bool {
         let mut scatter_direction = random_on_hemisphere(rec.normal);
-
+        // 捕捉退化的散射方向
         if scatter_direction.near_zero() {
             scatter_direction = rec.normal;
         }
@@ -83,8 +81,8 @@ impl Metal {
 impl Material for Metal {
     fn scatter(
         &self,
-        r_in: Ray,
-        rec: HitRecord,
+        r_in: &Ray,
+        rec: &HitRecord,
         attenuation: &mut Color,
         scattered: &mut Ray,
     ) -> bool {
@@ -111,8 +109,8 @@ impl Dielectric {
 impl Material for Dielectric {
     fn scatter(
         &self,
-        r_in: Ray,
-        rec: HitRecord,
+        r_in: &Ray,
+        rec: &HitRecord,
         attenuation: &mut Color,
         scattered: &mut Ray,
     ) -> bool {
@@ -156,8 +154,8 @@ pub struct DiffuseLight {
 impl Material for DiffuseLight {
     fn scatter(
         &self,
-        _r_in: Ray,
-        _rec: HitRecord,
+        _r_in: &Ray,
+        _rec: &HitRecord,
         _attenuation: &mut Color,
         _scattered: &mut Ray,
     ) -> bool {
@@ -203,8 +201,8 @@ impl Isotropic {
 impl Material for Isotropic {
     fn scatter(
         &self,
-        r_in: Ray,
-        rec: HitRecord,
+        r_in: &Ray,
+        rec: &HitRecord,
         attenuation: &mut Color,
         scattered: &mut Ray,
     ) -> bool {
