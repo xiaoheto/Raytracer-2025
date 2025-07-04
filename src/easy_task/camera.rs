@@ -3,9 +3,9 @@ use crate::easy_task::hittable::{HitRecord, Hittable};
 use crate::easy_task::interval::Interval;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3;
-use crate::easy_task::vec3::{Point3, Vec3, random_in_unit_sphere};
+use crate::easy_task::vec3::{Point3, Vec3, dot, random_in_unit_sphere};
 use crate::tools::rtweekend;
-use crate::tools::rtweekend::{degrees_to_radians, random_double};
+use crate::tools::rtweekend::{degrees_to_radians, random_double, random_double_range};
 use crossbeam::channel;
 use std::fs::{File, create_dir_all};
 use std::io::Write;
@@ -100,8 +100,30 @@ impl Camera {
                 return color_from_emission;
             }
 
+            let on_light = Point3::new(
+                random_double_range(213.0, 343.0),
+                554.0,
+                random_double_range(227.0, 332.0),
+            );
+            let to_light = on_light - rec.p;
+            let distance_squared = to_light.squared_length();
+            let to_light = vec3::unit_vector(to_light);
+
+            if dot(to_light, rec.normal) < 0.0 {
+                return color_from_emission;
+            }
+
+            let light_area = (343.0 - 213.0) * (332.0 - 227.0);
+            let light_cosine = to_light.y().abs();
+            if light_cosine < 0.000001 {
+                return color_from_emission;
+            }
+
+            pdf_value = distance_squared / (light_cosine * light_area);
+            scattered = Ray::new_time(rec.p, to_light, r.time());
+
             let scattering_pdf = mat.scattering_pdf(r, &rec, &scattered);
-            pdf_value = scattering_pdf;
+
             let color_from_scatter =
                 (attenuation * scattering_pdf * self.ray_color(&scattered, depth - 1, world))
                     / pdf_value;
@@ -112,7 +134,7 @@ impl Camera {
     pub fn render(&mut self, world: Arc<dyn Hittable + Send + Sync>) {
         self.initialize();
 
-        let path = "output/book3/image5.ppm";
+        let path = "output/book3/image6.ppm";
         let dir_path = std::path::Path::new("output/book3");
         if !dir_path.exists() {
             create_dir_all(dir_path).expect("Failed to create directory");
