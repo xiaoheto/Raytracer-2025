@@ -169,7 +169,7 @@ impl Camera {
             }
             drop(tx);
         })
-        .unwrap();
+            .unwrap();
 
         // 按行号收集输出，排序后写文件
         let mut rows: Vec<(i32, String)> = rx.iter().collect();
