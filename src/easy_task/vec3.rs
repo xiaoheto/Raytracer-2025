@@ -1,5 +1,4 @@
 use crate::tools::rtweekend::{PI, random_double, random_double_range};
-use rand::random_range;
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
 #[derive(Clone, Copy, Debug)]
