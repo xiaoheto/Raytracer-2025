@@ -2,9 +2,7 @@ use crate::easy_task::color::Color;
 use crate::easy_task::hittable::HitRecord;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::texture::{SolidColor, Texture};
-use crate::easy_task::vec3::{
-    Point3, Vec3, dot, random_unit_vector, reflect, refract, unit_vector,
-};
+use crate::easy_task::vec3::{Point3, Vec3, dot, random_unit_vector, reflect, refract, unit_vector, random_on_hemisphere};
 use crate::tools::rtweekend::{PI, random_double};
 use std::sync::Arc;
 
@@ -52,7 +50,7 @@ impl Material for Lambertian {
         attenuation: &mut Color,
         scattered: &mut Ray,
     ) -> bool {
-        let scatter_direction = rec.normal + random_unit_vector();
+        let scatter_direction = random_on_hemisphere(rec.normal);
         *scattered = Ray::new_time(rec.p, scatter_direction, r_in.time());
         *attenuation = self.tex.value(rec.u, rec.v, rec.p);
         true
