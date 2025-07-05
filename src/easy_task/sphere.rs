@@ -17,6 +17,7 @@ pub struct Sphere {
 }
 
 impl Sphere {
+    #[allow(dead_code)]
     pub fn new(static_center: Point3, radius: f64, mat: Arc<dyn Material + Send + Sync>) -> Self {
         let center = Ray::new(static_center, Vec3::default());
         let r = radius.max(0.0);
@@ -30,6 +31,7 @@ impl Sphere {
         }
     }
 
+    #[allow(dead_code)]
     pub fn new_move(
         center1: Point3,
         center2: Point3,

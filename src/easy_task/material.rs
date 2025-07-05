@@ -2,7 +2,9 @@ use crate::easy_task::color::Color;
 use crate::easy_task::hittable::HitRecord;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::texture::{SolidColor, Texture};
-use crate::easy_task::vec3::{Point3, Vec3, dot, random_unit_vector, reflect, refract, unit_vector, random_on_hemisphere};
+use crate::easy_task::vec3::{
+    Point3, Vec3, dot, random_on_hemisphere, random_unit_vector, reflect, refract, unit_vector,
+};
 use crate::tools::rtweekend::{PI, random_double};
 use std::sync::Arc;
 
@@ -37,6 +39,7 @@ impl Lambertian {
         }
     }
 
+    #[allow(dead_code)]
     pub fn new_texture(tex: Arc<dyn Texture>) -> Self {
         Self { tex }
     }
@@ -187,6 +190,7 @@ impl Isotropic {
         Self { albedo: a }
     }
 
+    #[allow(dead_code)]
     pub fn new_color(c: Color) -> Self {
         Self {
             albedo: Arc::new(SolidColor::new(c)),

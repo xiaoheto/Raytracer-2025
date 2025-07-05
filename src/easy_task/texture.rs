@@ -46,6 +46,7 @@ impl CheckerTexture {
         }
     }
 
+    #[allow(dead_code)]
     pub fn new_color(scale: f64, c1: Color, c2: Color) -> Self {
         Self {
             inv_scale: 1.0 / scale,
@@ -77,6 +78,7 @@ pub struct ImageTexture {
 }
 
 impl ImageTexture {
+    #[allow(dead_code)]
     pub fn new(filename: &str) -> Self {
         Self {
             image: RtwImage::new(filename),
@@ -113,6 +115,7 @@ pub struct NoiseTexture {
 }
 
 impl NoiseTexture {
+    #[allow(dead_code)]
     pub fn new(scale: f64) -> Self {
         Self {
             noise: Perlin::default(),

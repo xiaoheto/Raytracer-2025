@@ -30,6 +30,7 @@ impl ConstantMedium {
         }
     }
 
+    #[allow(dead_code)]
     pub fn new_color(boundry: Arc<dyn Hittable>, density: f64, albedo: Color) -> Self {
         Self {
             boundry,

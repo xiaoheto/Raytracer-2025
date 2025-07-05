@@ -11,6 +11,7 @@ pub struct RtwImage {
 }
 
 impl RtwImage {
+    #[allow(dead_code)]
     pub fn new(image_filename: &str) -> Self {
         // 从指定的文件加载图像数据。如果定义了 RTW_IMAGES 环境变量，则仅在该目录中查找图像文件。
         // 如果未找到图像，则首先从当前目录，然后在 images/ 子目录中，然后在父级的 images/ 子目录中，

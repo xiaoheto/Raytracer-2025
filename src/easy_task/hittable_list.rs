@@ -11,6 +11,7 @@ pub struct HittableList {
 }
 
 impl HittableList {
+    #[allow(dead_code)]
     pub fn new(object: Arc<dyn Hittable>) -> Self {
         Self {
             objects: vec![object],
