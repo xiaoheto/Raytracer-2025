@@ -87,7 +87,11 @@ impl Camera {
         let mut scattered = Ray::default();
         let mut attenuation = Color::default();
         let mut pdf_value: f64 = 0.0;
-        let color_from_emission = rec.mat.clone().unwrap().emitted(rec.u, rec.v, rec.p);
+        let color_from_emission = rec
+            .mat
+            .clone()
+            .unwrap()
+            .emitted(r, &rec, rec.u, rec.v, rec.p);
 
         if let Some(mat) = rec.mat.clone() {
             if !mat.scatter(
@@ -134,7 +138,7 @@ impl Camera {
     pub fn render(&mut self, world: Arc<dyn Hittable + Send + Sync>) {
         self.initialize();
 
-        let path = "output/book3/image5.ppm";
+        let path = "output/book3/image6.ppm";
         let dir_path = std::path::Path::new("output/book3");
         if !dir_path.exists() {
             create_dir_all(dir_path).expect("Failed to create directory");
