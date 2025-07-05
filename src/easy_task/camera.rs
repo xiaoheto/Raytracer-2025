@@ -3,9 +3,9 @@ use crate::easy_task::hittable::{HitRecord, Hittable};
 use crate::easy_task::interval::Interval;
 use crate::easy_task::ray::Ray;
 use crate::easy_task::vec3;
-use crate::easy_task::vec3::{Point3, Vec3, random_in_unit_disk};
+use crate::easy_task::vec3::{Point3, Vec3, dot, random_in_unit_disk, unit_vector};
 use crate::tools::rtweekend;
-use crate::tools::rtweekend::{PI, degrees_to_radians, random_double};
+use crate::tools::rtweekend::{degrees_to_radians, random_double, random_double_range};
 use crossbeam::channel;
 use std::fs::{File, create_dir_all};
 use std::io::Write;
@@ -86,15 +86,44 @@ impl Camera {
 
         let mut scattered = Ray::default();
         let mut attenuation = Color::default();
+        let mut pdf_value: f64 = 0.0;
         let color_from_emission = rec.mat.clone().unwrap().emitted(rec.u, rec.v, rec.p);
 
         if let Some(mat) = rec.mat.clone() {
-            if !mat.scatter(*r, rec.clone(), &mut attenuation, &mut scattered) {
+            if !mat.scatter(
+                *r,
+                rec.clone(),
+                &mut attenuation,
+                &mut scattered,
+                &mut pdf_value,
+            ) {
                 return color_from_emission;
             }
 
+            let on_light = Point3::new(
+                random_double_range(213.0, 343.0),
+                554.0,
+                random_double_range(227.0, 332.0),
+            );
+            let mut to_light = on_light - rec.p;
+            let distance_squared = to_light.squared_length();
+            to_light = unit_vector(to_light);
+
+            if dot(to_light, rec.normal) < 0.0 {
+                return color_from_emission;
+            }
+
+            let light_area = (343.0 - 213.0) * (332.0 - 227.0);
+            let light_cosine = to_light.y().abs();
+            if light_cosine < 0.000001 {
+                return color_from_emission;
+            }
+
+            pdf_value = distance_squared / (light_cosine * light_area);
+            scattered = Ray::new_time(rec.p, to_light, r.time());
+
             let scattering_pdf = mat.scattering_pdf(r, &rec, &scattered);
-            let pdf_value = 1.0 / (2.0 * PI);
+
             let color_from_scatter =
                 (attenuation * scattering_pdf * self.ray_color(&scattered, depth - 1, world))
                     / pdf_value;
@@ -105,7 +134,7 @@ impl Camera {
     pub fn render(&mut self, world: Arc<dyn Hittable + Send + Sync>) {
         self.initialize();
 
-        let path = "output/book3/image4.ppm";
+        let path = "output/book3/image5.ppm";
         let dir_path = std::path::Path::new("output/book3");
         if !dir_path.exists() {
             create_dir_all(dir_path).expect("Failed to create directory");
@@ -196,8 +225,8 @@ impl Camera {
         let viewport_width = viewport_height * (self.image_width as f64 / self.image_height as f64);
 
         // 计算相机坐标系的 u,v,w 单位基向量。
-        self.w = vec3::unit_vector(self.lookfrom - self.lookat);
-        self.u = vec3::unit_vector(vec3::cross(self.vup, self.w));
+        self.w = unit_vector(self.lookfrom - self.lookat);
+        self.u = unit_vector(vec3::cross(self.vup, self.w));
         self.v = vec3::cross(self.w, self.u);
 
         // 计算水平和垂直视口边缘上的向量。
