@@ -33,9 +33,9 @@ fn cornell_box() {
         red,
     )));
     world.add(Arc::new(Quad::new(
-        Point3::new(343.0, 554.0, 332.0),
-        Vec3::new(-130.0, 0.0, 0.0),
-        Vec3::new(0.0, 0.0, -105.0),
+        Point3::new(213.0, 554.0, 227.0),
+        Vec3::new(130.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 105.0),
         light.clone(),
     )));
     world.add(Arc::new(Quad::new(
