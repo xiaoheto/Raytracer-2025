@@ -1,15 +1,14 @@
-use crate::easy_task::color::Color;
+use super::color::Color;
+use super::vec3::Point3;
 use crate::easy_task::interval::Interval;
 use crate::easy_task::perlin::Perlin;
-use crate::easy_task::rtw_srb_image::RtwImage;
-use crate::easy_task::vec3::Point3;
+use crate::easy_task::rtw_image::RtwImage;
 use std::sync::Arc;
 
-pub trait Texture: Send + Sync {
+pub trait Texture {
     fn value(&self, u: f64, v: f64, p: Point3) -> Color;
 }
 
-#[derive(Debug, Clone, Copy)]
 pub struct SolidColor {
     albedo: Color,
 }
@@ -18,9 +17,12 @@ impl SolidColor {
     pub fn new(albedo: Color) -> Self {
         Self { albedo }
     }
+
     #[allow(dead_code)]
-    pub fn new_double(red: f64, green: f64, blue: f64) -> Self {
-        Self::new(Color::new(red, green, blue))
+    pub fn new_color(red: f64, green: f64, blue: f64) -> Self {
+        Self {
+            albedo: Color::new(red, green, blue),
+        }
     }
 }
 
@@ -29,16 +31,21 @@ impl Texture for SolidColor {
         self.albedo
     }
 }
+
 #[derive(Clone)]
 pub struct CheckerTexture {
     inv_scale: f64,
-    even: Arc<dyn Texture>,
-    odd: Arc<dyn Texture>,
+    even: Arc<dyn Texture + Send + Sync>,
+    odd: Arc<dyn Texture + Send + Sync>,
 }
 
 impl CheckerTexture {
     #[allow(dead_code)]
-    pub fn new(scale: f64, even: Arc<dyn Texture>, odd: Arc<dyn Texture>) -> Self {
+    pub fn new(
+        scale: f64,
+        even: Arc<dyn Texture + Send + Sync>,
+        odd: Arc<dyn Texture + Send + Sync>,
+    ) -> Self {
         Self {
             inv_scale: 1.0 / scale,
             even,
@@ -88,7 +95,7 @@ impl ImageTexture {
 
 impl Texture for ImageTexture {
     fn value(&self, u: f64, v: f64, _p: Point3) -> Color {
-        if self.image.height() < 0 {
+        if self.image.height() <= 0 {
             return Color::new(0.0, 1.0, 1.0);
         }
 
@@ -107,26 +114,26 @@ impl Texture for ImageTexture {
         )
     }
 }
-#[allow(dead_code)]
-#[derive(Default, Debug, Clone)]
+
+#[derive(Debug, Clone, Default)]
 pub struct NoiseTexture {
     noise: Perlin,
     scale: f64,
-}
-
-impl NoiseTexture {
-    #[allow(dead_code)]
-    pub fn new(scale: f64) -> Self {
-        Self {
-            noise: Perlin::default(),
-            scale,
-        }
-    }
 }
 
 impl Texture for NoiseTexture {
     fn value(&self, _u: f64, _v: f64, p: Point3) -> Color {
         Color::new(0.5, 0.5, 0.5)
             * (1.0 + (self.scale * p.z() + 10.0 * self.noise.turb(p, 7)).sin())
+    }
+}
+
+impl NoiseTexture {
+    #[allow(dead_code)]
+    pub fn new(scale: f64) -> Self {
+        Self {
+            scale,
+            noise: Perlin::default(),
+        }
     }
 }

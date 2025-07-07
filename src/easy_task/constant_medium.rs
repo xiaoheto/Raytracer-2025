@@ -1,60 +1,70 @@
-use crate::easy_task::aabb::Aabb;
-use crate::easy_task::color::Color;
-use crate::easy_task::hittable::{HitRecord, Hittable};
-use crate::easy_task::interval::Interval;
-use crate::easy_task::material::{Isotropic, Material};
-use crate::easy_task::ray::Ray;
-use crate::easy_task::texture::Texture;
-use crate::easy_task::vec3::Vec3;
-use crate::tools::rtweekend::{INFINITY, random_double};
+use super::aabb::Aabb;
+use super::color::Color;
+use super::hittable::{HitRecord, Hittable};
+use super::interval::{self, Interval};
+use super::material::{Isotropic, Material};
+use super::ray::Ray;
+use super::rtweekend;
+use super::texture::Texture;
+use super::vec3::Vec3;
 use std::sync::Arc;
 
-#[derive(Clone)]
 pub struct ConstantMedium {
-    pub boundry: Arc<dyn Hittable + Send + Sync>,
-    pub neg_inv_density: f64,
-    pub phase_function: Arc<dyn Material + Send + Sync>,
+    boundary: Arc<dyn Hittable + Sync + Send>,
+    neg_inv_density: f64,
+    phase_function: Arc<dyn Material + Sync + Send>,
 }
 
 impl ConstantMedium {
     #[allow(dead_code)]
-    pub fn new_texture(
-        boundry: Arc<dyn Hittable + Send + Sync>,
+    pub fn new(
+        boundary: Arc<dyn Hittable + Sync + Send>,
         density: f64,
-        tex: Arc<dyn Texture + Send + Sync>,
+        a: Arc<dyn Texture + Sync + Send>,
     ) -> Self {
         Self {
-            boundry,
+            boundary,
             neg_inv_density: -1.0 / density,
-            phase_function: Arc::new(Isotropic::new(tex)),
+            phase_function: Arc::new(Isotropic::new(a)),
         }
     }
-
     #[allow(dead_code)]
-    pub fn new_color(boundry: Arc<dyn Hittable>, density: f64, albedo: Color) -> Self {
+    pub fn new_with_color(
+        boundary: Arc<dyn Hittable + Sync + Send>,
+        density: f64,
+        albedo: Color,
+    ) -> Self {
         Self {
-            boundry,
+            boundary,
             neg_inv_density: -1.0 / density,
-            phase_function: Arc::new(Isotropic::new_color(albedo)),
+            phase_function: Arc::new(Isotropic::new_with_color(albedo)),
         }
     }
 }
 
 impl Hittable for ConstantMedium {
     fn hit(&self, r: &Ray, ray_t: &Interval, rec: &mut HitRecord) -> bool {
+        // Print occasional samples when debugging. To enable, set enableDebug true.
+        const ENABLE_DEBUG: bool = false;
+        let debugging = ENABLE_DEBUG && rtweekend::random_double() < 0.00001;
+
         let mut rec1 = HitRecord::default();
         let mut rec2 = HitRecord::default();
 
-        let temp_universe = Interval::new(-INFINITY, INFINITY);
-        if !self.boundry.hit(r, &temp_universe, &mut rec1) {
+        if !self.boundary.hit(r, &interval::UNIVERSE, &mut rec1) {
             return false;
         }
 
-        if !self
-            .boundry
-            .hit(r, &Interval::new(rec1.t + 0.0001, INFINITY), &mut rec2)
-        {
+        if !self.boundary.hit(
+            r,
+            &Interval::new(rec1.t + 0.0001, rtweekend::INFINITY),
+            &mut rec2,
+        ) {
             return false;
+        }
+
+        if debugging {
+            eprintln!("\nray_tmin={} ray_tmax={}", rec1.t, rec2.t);
         }
 
         if rec1.t < ray_t.min {
@@ -74,7 +84,7 @@ impl Hittable for ConstantMedium {
 
         let ray_length = r.direction().length();
         let distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
-        let hit_distance = self.neg_inv_density * random_double().ln();
+        let hit_distance = self.neg_inv_density * rtweekend::random_double().ln();
 
         if hit_distance > distance_inside_boundary {
             return false;
@@ -82,6 +92,12 @@ impl Hittable for ConstantMedium {
 
         rec.t = rec1.t + hit_distance / ray_length;
         rec.p = r.at(rec.t);
+
+        if debugging {
+            eprintln!("hit_distance = {}", hit_distance);
+            eprintln!("rec.t = {}", rec.t);
+            eprintln!("rec.p = {}", rec.p);
+        }
 
         rec.normal = Vec3::new(1.0, 0.0, 0.0);
         rec.front_face = true;
@@ -91,6 +107,6 @@ impl Hittable for ConstantMedium {
     }
 
     fn bounding_box(&self) -> &Aabb {
-        self.boundry.bounding_box()
+        self.boundary.bounding_box()
     }
 }

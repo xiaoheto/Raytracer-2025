@@ -1,4 +1,4 @@
-use crate::tools::rtweekend::{PI, random_double, random_double_range};
+use crate::easy_task::rtweekend::{PI, random_double, random_double_range};
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
 #[derive(Clone, Copy, Debug)]
@@ -151,25 +151,13 @@ impl Vec3 {
         (self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]).sqrt()
     }
 
-    pub fn squared_length(&self) -> f64 {
+    pub fn length_squared(&self) -> f64 {
         self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]
     }
 
     pub fn near_zero(&self) -> bool {
         let s = 1e-8;
-        self.e[0] < s && self.e[1] < s && self.e[2] < s
-    }
-
-    pub fn random() -> Vec3 {
-        Vec3::new(random_double(), random_double(), random_double())
-    }
-
-    pub fn random_range(min: f64, max: f64) -> Vec3 {
-        Vec3::new(
-            random_double_range(min, max),
-            random_double_range(min, max),
-            random_double_range(min, max),
-        )
+        self.e[0].abs() < s && self.e[1].abs() < s && self.e[2].abs() < s
     }
 }
 
@@ -195,11 +183,24 @@ pub fn unit_vector(v: Vec3) -> Vec3 {
     v / v.length()
 }
 
+#[allow(dead_code)]
+pub fn random() -> Vec3 {
+    Vec3::new(random_double(), random_double(), random_double())
+}
+
+pub fn random_range(min: f64, max: f64) -> Vec3 {
+    Vec3::new(
+        random_double_range(min, max),
+        random_double_range(min, max),
+        random_double_range(min, max),
+    )
+}
+
 pub fn random_unit_vector() -> Vec3 {
     loop {
-        let p = Vec3::random_range(-1.0, 1.0);
-        let lensq = p.squared_length();
-        if 1e-160 < lensq && lensq <= 1.0 {
+        let p = random_range(-1.0, 1.0);
+        let lensq = p.length_squared();
+        if lensq <= 1.0 && 1e-160 < lensq {
             return p / lensq.sqrt();
         }
     }
@@ -213,7 +214,6 @@ pub fn random_on_hemisphere(normal: Vec3) -> Vec3 {
         -on_unit_sphere
     }
 }
-
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
     v - 2.0 * dot(v, n) * n
 }
@@ -221,7 +221,7 @@ pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
 pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
     let cos_theta = dot(-uv, n).min(1.0);
     let r_out_perp = etai_over_etat * (uv + cos_theta * n);
-    let r_out_parallel = -(1.0 - r_out_perp.squared_length()).abs().sqrt() * n;
+    let r_out_parallel = -(1.0 - r_out_perp.length_squared()).abs().sqrt() * n;
     r_out_perp + r_out_parallel
 }
 
@@ -232,7 +232,7 @@ pub fn random_in_unit_disk() -> Vec3 {
             random_double_range(-1.0, 1.0),
             0.0,
         );
-        if p.squared_length() < 1.0 {
+        if p.length_squared() < 1.0 {
             return p;
         }
     }

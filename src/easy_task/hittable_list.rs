@@ -7,25 +7,26 @@ use std::sync::Arc;
 #[derive(Default)]
 pub struct HittableList {
     pub objects: Vec<Arc<dyn Hittable + Send + Sync>>,
-    pub bbox: Aabb,
+    bbox: Aabb,
 }
 
 impl HittableList {
     #[allow(dead_code)]
-    pub fn new(object: Arc<dyn Hittable>) -> Self {
+    pub fn new(object: Arc<dyn Hittable + Send + Sync>) -> Self {
         Self {
             objects: vec![object],
             bbox: Aabb::default(),
         }
     }
+
     #[allow(dead_code)]
     pub fn clear(&mut self) {
         self.objects.clear();
     }
 
-    pub fn add(&mut self, object: Arc<dyn Hittable>) {
+    pub fn add(&mut self, object: Arc<dyn Hittable + Send + Sync>) {
+        self.objects.push(object.clone());
         self.bbox = Aabb::new_aabb(&self.bbox, object.bounding_box());
-        self.objects.push(object);
     }
 }
 

@@ -1,13 +1,12 @@
-use super::vec3;
 use crate::easy_task::interval::Interval;
+use crate::easy_task::vec3::Vec3;
+use std::fs::File;
 use std::io::Write;
-use vec3::Vec3;
 
 pub type Color = Vec3;
 
 impl Color {
-    //映射每个颜色的分量并写到out中，分别是 红/绿/蓝
-    pub fn write_color(&self, out: &mut dyn Write, pixel_color: Color) -> std::io::Result<()> {
+    pub fn write_color(&self, out: &mut File, pixel_color: Color) -> std::io::Result<()> {
         let mut r = pixel_color.x();
         let mut g = pixel_color.y();
         let mut b = pixel_color.z();
@@ -20,8 +19,7 @@ impl Color {
         let rbyte = (256.0 * intensity.clamp(r)) as i32;
         let gbyte = (256.0 * intensity.clamp(g)) as i32;
         let bbyte = (256.0 * intensity.clamp(b)) as i32;
-
-        writeln!(out, "{}{}{}", rbyte, gbyte, bbyte)
+        writeln!(out, "{} {} {}\n", rbyte, gbyte, bbyte,)
     }
 }
 

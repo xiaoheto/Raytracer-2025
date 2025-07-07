@@ -1,26 +1,19 @@
-use super::vec3::{Point3, Vec3};
-#[derive(Default, Debug, Copy, Clone)]
+use crate::easy_task::vec3::{Point3, Vec3};
+
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Ray {
-    orig: Vec3,
+    orig: Point3,
     dir: Vec3,
     tm: f64,
 }
 
 impl Ray {
-    pub fn new(origin: Point3, direction: Vec3) -> Self {
-        Self {
-            orig: origin,
-            dir: direction,
-            tm: 0.0,
-        }
+    pub fn new(orig: Point3, dir: Vec3) -> Self {
+        Self { orig, dir, tm: 0.0 }
     }
 
-    pub fn new_time(orig: Point3, direction: Vec3, time: f64) -> Self {
-        Self {
-            orig,
-            dir: direction,
-            tm: time,
-        }
+    pub fn new_time(orig: Point3, dir: Vec3, tm: f64) -> Self {
+        Self { orig, dir, tm }
     }
 
     pub fn origin(&self) -> Point3 {
