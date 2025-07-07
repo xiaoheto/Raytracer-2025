@@ -1,9 +1,9 @@
 mod easy_task;
 use crate::easy_task::camera::Camera;
 use crate::easy_task::color::Color;
-use crate::easy_task::hittable::{RotateY, Translate};
+use crate::easy_task::hittable::{Hittable, RotateY, Sphere, Translate};
 use crate::easy_task::hittable_list::HittableList;
-use crate::easy_task::material::{DiffuseLight, Lambertian, Material, Metal};
+use crate::easy_task::material::{Dielectric, DiffuseLight, Lambertian, Material};
 use crate::easy_task::quad::{Quad, box_};
 use crate::easy_task::vec3::{Point3, Vec3};
 use std::sync::Arc;
@@ -57,25 +57,21 @@ fn cornell_box() {
         white.clone(),
     )));
 
-    let aluminum: Arc<dyn Material + Sync + Send> =
-        Arc::new(Metal::new(Color::new(0.8, 0.85, 0.88), 0.0));
-    let box1 = box_(
+    let mut box1: Arc<dyn Hittable + Sync + Send> = box_(
         Point3::new(0.0, 0.0, 0.0),
-        Vec3::new(165.0, 330.0, 165.0),
-        Arc::clone(&aluminum),
+        Point3::new(165.0, 330.0, 165.0),
+        white,
     );
-    let box1 = Arc::new(RotateY::new(box1, 15.0));
-    let box1 = Arc::new(Translate::new(box1, Vec3::new(265.0, 0.0, 295.0)));
+    box1 = Arc::new(RotateY::new(box1, 15.0));
+    box1 = Arc::new(Translate::new(box1, Vec3::new(265.0, 0.0, 295.0)));
     world.add(box1);
 
-    let box2 = box_(
-        Point3::new(0.0, 0.0, 0.0),
-        Vec3::new(165.0, 165.0, 165.0),
-        Arc::clone(&white),
-    );
-    let box2 = Arc::new(RotateY::new(box2, -18.0));
-    let box2 = Arc::new(Translate::new(box2, Vec3::new(130.0, 0.0, 65.0)));
-    world.add(box2);
+    let glass = Arc::new(Dielectric::new(1.5));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(190.0, 90.0, 190.0),
+        90.0,
+        glass,
+    )));
 
     let lights = Quad::new(
         Point3::new(343.0, 554.0, 332.0),

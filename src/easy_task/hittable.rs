@@ -164,7 +164,7 @@ impl Hittable for Sphere {
         let direction = self.center.at(0.0) - origin;
         let distance_squared = direction.length_squared();
         let uvw = Onb::new_from_w(direction);
-        uvw.local_v(Self::random_to_sphere(self.radius, distance_squared))
+        uvw.transform(Self::random_to_sphere(self.radius, distance_squared))
     }
 }
 

@@ -22,7 +22,7 @@ impl Onb {
     pub fn local(&self, a: f64, b: f64, c: f64) -> Vec3 {
         a * self.u() + b * self.v() + c * self.w()
     }
-    pub fn local_v(&self, a: Vec3) -> Vec3 {
+    pub fn transform(&self, a: Vec3) -> Vec3 {
         a.x() * self.u() + a.y() * self.v() + a.z() * self.w()
     }
 
