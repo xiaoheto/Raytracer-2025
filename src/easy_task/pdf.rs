@@ -10,6 +10,8 @@ pub trait Pdf {
     fn value(&self, direction: Vec3) -> f64;
     fn generate(&self) -> Vec3;
 }
+
+#[derive(Default)]
 pub struct SpherePdf;
 
 impl Pdf for SpherePdf {
@@ -68,11 +70,11 @@ impl Pdf for HittablePdf {
 }
 
 pub struct MixturePdf {
-    pub p: [Arc<dyn Pdf + Sync + Send>; 2],
+    pub p: [Box<dyn Pdf>; 2],
 }
 
 impl MixturePdf {
-    pub fn new(p0: Arc<dyn Pdf + Sync + Send>, p1: Arc<dyn Pdf + Sync + Send>) -> Self {
+    pub fn new(p0: Box<dyn Pdf>, p1: Box<dyn Pdf>) -> Self {
         Self { p: [p0, p1] }
     }
 }
