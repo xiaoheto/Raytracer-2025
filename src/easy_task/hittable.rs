@@ -32,6 +32,14 @@ pub trait Hittable {
     fn hit(&self, r: &Ray, ray_t: &Interval, rec: &mut HitRecord) -> bool;
 
     fn bounding_box(&self) -> &Aabb;
+
+    fn pdf_value(&self, _origin: Point3, _direction: Vec3) -> f64 {
+        0.0
+    }
+
+    fn random(&self, _origin: Point3) -> Vec3 {
+        Vec3::new(0.0, 0.0, 0.0)
+    }
 }
 
 #[derive(Clone)]

@@ -1,7 +1,7 @@
 use crate::easy_task::color::{Color, linear_to_gamma};
 use crate::easy_task::hittable::{HitRecord, Hittable};
 use crate::easy_task::interval::Interval;
-use crate::easy_task::pdf::{CosinePdf, Pdf};
+use crate::easy_task::pdf::{HittablePdf, Pdf};
 use crate::easy_task::ray::Ray;
 use crate::easy_task::rtweekend::{INFINITY, degrees_to_radians, random_double};
 use crate::easy_task::vec3::{Point3, Vec3, cross, random_in_unit_disk, unit_vector};
@@ -73,7 +73,13 @@ impl Default for Camera {
 }
 
 impl Camera {
-    fn ray_color(&self, r: &Ray, depth: i32, world: &Arc<dyn Hittable + Send + Sync>) -> Color {
+    fn ray_color(
+        &self,
+        r: &Ray,
+        depth: i32,
+        world: &Arc<dyn Hittable + Send + Sync>,
+        lights: &Arc<dyn Hittable + Send + Sync>,
+    ) -> Color {
         if depth <= 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
@@ -85,20 +91,20 @@ impl Camera {
         if let Some(mat) = rec.mat.clone() {
             let mut scattered = Ray::default();
             let mut attenuation = Color::default();
-            let mut pdf = 0.0;
+            let mut pdf_value = 0.0;
             let color_from_emission = mat.emitted(r, &rec, rec.u, rec.v, rec.p);
-            if !mat.scatter(r, &rec, &mut attenuation, &mut scattered, &mut pdf) {
+            if !mat.scatter(r, &rec, &mut attenuation, &mut scattered, &mut pdf_value) {
                 return color_from_emission;
             }
 
-            let surface_pdf = CosinePdf::new(rec.normal);
-            scattered = Ray::new_time(rec.p, surface_pdf.generate(), r.time());
-            pdf = surface_pdf.value(scattered.direction());
+            let light_pdf = HittablePdf::new(lights, rec.p);
+            let scattered = Ray::new_time(rec.p, light_pdf.generate(), r.time());
+            let pdf = light_pdf.value(scattered.direction());
 
             let scattering_pdf = mat.scattering_pdf(r, &rec, &scattered);
 
-            let color_from_scatter =
-                (attenuation * scattering_pdf * self.ray_color(&scattered, depth - 1, world)) / pdf;
+            let sample_color = self.ray_color(&scattered, depth - 1, world, lights);
+            let color_from_scatter = (attenuation * scattering_pdf * sample_color) / pdf;
 
             color_from_emission + color_from_scatter
         } else {
@@ -146,10 +152,14 @@ impl Camera {
         self.defocus_disk_v = self.v * defocus_radius;
     }
 
-    pub fn render(&mut self, world: Arc<dyn Hittable + Send + Sync>) {
+    pub fn render(
+        &mut self,
+        world: Arc<dyn Hittable + Send + Sync>,
+        lights: Arc<dyn Hittable + Send + Sync>,
+    ) {
         self.initialize();
 
-        let path = "output/book3/image7.ppm";
+        let path = "output/book3/image8.ppm";
         let dir_path = std::path::Path::new("output/book3");
         if !dir_path.exists() {
             create_dir_all(dir_path).expect("Failed to create directory");
@@ -163,6 +173,7 @@ impl Camera {
 
         let (tx, rx) = channel::unbounded();
         let world = Arc::clone(&world);
+        let lights = Arc::clone(&lights);
 
         let image_width = self.image_width;
         let pixel_samples_scale = self.pixel_samples_scale;
@@ -174,6 +185,7 @@ impl Camera {
             for j in 0..self.image_height {
                 let tx = tx.clone();
                 let world = Arc::clone(&world);
+                let lights = Arc::clone(&lights);
                 scope.spawn(move |_| {
                     let mut row = String::new();
                     for i in 0..image_width {
@@ -181,7 +193,7 @@ impl Camera {
                         for s_j in 0..sqrt_spp {
                             for s_i in 0..sqrt_spp {
                                 let r = camera.get_ray(i, j, s_i, s_j);
-                                pixel_color += camera.ray_color(&r, max_depth, &world);
+                                pixel_color += camera.ray_color(&r, max_depth, &world, &lights);
                             }
                         }
 
