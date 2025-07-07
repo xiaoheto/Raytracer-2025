@@ -1,7 +1,7 @@
 use crate::easy_task::color::{Color, linear_to_gamma};
 use crate::easy_task::hittable::{HitRecord, Hittable};
 use crate::easy_task::interval::Interval;
-use crate::easy_task::pdf::{HittablePdf, Pdf};
+use crate::easy_task::pdf::{CosinePdf, HittablePdf, MixturePdf, Pdf};
 use crate::easy_task::ray::Ray;
 use crate::easy_task::rtweekend::{INFINITY, degrees_to_radians, random_double};
 use crate::easy_task::vec3::{Point3, Vec3, cross, random_in_unit_disk, unit_vector};
@@ -97,14 +97,17 @@ impl Camera {
                 return color_from_emission;
             }
 
-            let light_pdf = HittablePdf::new(lights, rec.p);
-            let scattered = Ray::new_time(rec.p, light_pdf.generate(), r.time());
-            let pdf = light_pdf.value(scattered.direction());
+            let p0: Arc<dyn Pdf + Sync + Send> = Arc::new(HittablePdf::new(lights.clone(), rec.p));
+            let p1: Arc<dyn Pdf + Sync + Send> = Arc::new(CosinePdf::new(rec.normal));
+            let mixed_pdf = MixturePdf::new(p0, p1);
+
+            scattered = Ray::new_time(rec.p, mixed_pdf.generate(), r.time());
+            pdf_value = mixed_pdf.value(scattered.direction());
 
             let scattering_pdf = mat.scattering_pdf(r, &rec, &scattered);
 
             let sample_color = self.ray_color(&scattered, depth - 1, world, lights);
-            let color_from_scatter = (attenuation * scattering_pdf * sample_color) / pdf;
+            let color_from_scatter = (attenuation * scattering_pdf * sample_color) / pdf_value;
 
             color_from_emission + color_from_scatter
         } else {
@@ -159,7 +162,7 @@ impl Camera {
     ) {
         self.initialize();
 
-        let path = "output/book3/image8.ppm";
+        let path = "output/book3/image9.ppm";
         let dir_path = std::path::Path::new("output/book3");
         if !dir_path.exists() {
             create_dir_all(dir_path).expect("Failed to create directory");
