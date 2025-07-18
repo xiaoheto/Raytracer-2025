@@ -73,18 +73,24 @@ fn cornell_box() {
         glass,
     )));
 
-    let lights = Quad::new(
+    let mut lights = HittableList::default();
+    lights.add(Arc::new(Quad::new(
         Point3::new(343.0, 554.0, 332.0),
         Vec3::new(-130.0, 0.0, 0.0),
         Vec3::new(0.0, 0.0, -105.0),
+        light.clone(),
+    )));
+    lights.add(Arc::new(Sphere::new(
+        Point3::new(190.0, 90.0, 190.0),
+        90.0,
         light,
-    );
+    )));
 
     let mut cam = Camera::default();
 
     cam.aspect_ratio = 1.0;
     cam.image_width = 600;
-    cam.samples_per_pixel = 10;
+    cam.samples_per_pixel = 100;
     cam.max_depth = 50;
     cam.background = Color::default();
 
