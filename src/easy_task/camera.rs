@@ -166,7 +166,7 @@ impl Camera {
     ) {
         self.initialize();
 
-        let path = "output/book3/image12.ppm";
+        let path = "output/book3/image13.ppm";
         let dir_path = std::path::Path::new("output/book3");
         if !dir_path.exists() {
             create_dir_all(dir_path).expect("Failed to create directory");
@@ -208,6 +208,16 @@ impl Camera {
                         let mut r = pixel_color.x();
                         let mut g = pixel_color.y();
                         let mut b = pixel_color.z();
+
+                        if r.is_nan() {
+                            r = 0.0;
+                        }
+                        if g.is_nan() {
+                            g = 0.0;
+                        }
+                        if b.is_nan() {
+                            b = 0.0;
+                        }
 
                         r = linear_to_gamma(r);
                         g = linear_to_gamma(g);
