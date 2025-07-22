@@ -166,8 +166,8 @@ impl Camera {
     ) {
         self.initialize();
 
-        let path = "output/book3/image13.ppm";
-        let dir_path = std::path::Path::new("output/book3");
+        let path = "output/advanced/image1.ppm";
+        let dir_path = std::path::Path::new("output/advanced");
         if !dir_path.exists() {
             create_dir_all(dir_path).expect("Failed to create directory");
         }
