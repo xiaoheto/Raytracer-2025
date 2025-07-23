@@ -109,11 +109,11 @@ fn cornell_box() {
 }
 
 fn main() {
-    final_scene(800, 10000, 40)
+    final_scene(800,2000,40)
 }
 #[allow(dead_code)]
 fn earth() {
-    let earth_texture: Arc<dyn Texture + Sync + Send> = Arc::new(ImageTexture::new("zym.jpg"));
+    let earth_texture: Arc<dyn Texture + Sync + Send> = Arc::new(ImageTexture::new("gyn2.jpg"));
     let earth_surface: Arc<dyn Material + Sync + Send> =
         Arc::new(Lambertian::new_texture(Arc::clone(&earth_texture)));
     let mut globe: Arc<dyn Hittable + Sync + Send> =
@@ -138,9 +138,9 @@ fn earth() {
 
     cam.aspect_ratio = 16.0 / 9.0;
     cam.image_width = 400;
-    cam.samples_per_pixel = 100;
+    cam.samples_per_pixel = 500;
     cam.max_depth = 10;
-    cam.background = Color::new(0.7, 0.8, 1.0);
+    cam.background = Color::new(0.2, 0.3, 0.5);
 
     cam.vfov = 20.0;
     cam.lookfrom = Point3::new(0.0, 0.0, 12.0);
