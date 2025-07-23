@@ -109,7 +109,7 @@ fn cornell_box() {
 }
 
 fn main() {
-    final_scene(800, 1000, 40)
+    final_scene(100, 100, 40)
 }
 #[allow(dead_code)]
 fn earth() {
@@ -197,15 +197,10 @@ fn final_scene(image_width: usize, samples_per_pixel: usize, max_depth: usize) {
     )));
 
     let center1 = Point3::new(400.0, 400.0, 200.0);
-    let center2 = center1 + Vec3::new(30.0, 0.0, 0.0);
-    let sphere_material: Arc<dyn Material + Send + Sync> =
-        Arc::new(Lambertian::new(Color::new(0.7, 0.3, 0.1)));
-    world.add(Arc::new(Sphere::new_move(
-        center1,
-        center2,
-        50.0,
-        sphere_material,
+    let mmat: Arc<dyn Material + Send + Sync> = Arc::new(Lambertian::new_texture(Arc::new(
+        ImageTexture::new("Mars.jpg"),
     )));
+    world.add(Arc::new(Sphere::new(center1, 50.0, mmat)));
 
     let mmat: Arc<dyn Material + Send + Sync> = Arc::new(Lambertian::new_texture(Arc::new(
         ImageTexture::new("moon.jpg"),
@@ -217,8 +212,9 @@ fn final_scene(image_width: usize, samples_per_pixel: usize, max_depth: usize) {
     )));
 
     let zmat: Arc<dyn Material + Send + Sync> = Arc::new(Lambertian::new_texture(Arc::new(
-        ImageTexture::new("zym.jpg"),
+        ImageTexture::new("zym.png"),
     )));
+
     world.add(Arc::new(Sphere::new(
         Point3::new(0.0, 150.0, 145.0),
         50.0,
@@ -228,7 +224,9 @@ fn final_scene(image_width: usize, samples_per_pixel: usize, max_depth: usize) {
     let boundary: Arc<dyn Hittable + Sync + Send> = Arc::new(Sphere::new(
         Point3::new(360.0, 150.0, 145.0),
         70.0,
-        Arc::new(Dielectric::new(1.5)),
+        Arc::new(Lambertian::new_texture(Arc::new(ImageTexture::new(
+            "Venus.jpg",
+        )))), // 使用 "Menus.jpg" 作为纹理
     ));
     world.add(Arc::clone(&boundary));
     world.add(Arc::new(ConstantMedium::new_with_color(
@@ -236,6 +234,7 @@ fn final_scene(image_width: usize, samples_per_pixel: usize, max_depth: usize) {
         0.2,
         Color::new(0.2, 0.4, 0.9),
     )));
+
     let boundary: Arc<dyn Hittable + Sync + Send> = Arc::new(Sphere::new(
         Point3::new(0.0, 0.0, 0.0),
         5000.0,
