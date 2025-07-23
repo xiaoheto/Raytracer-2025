@@ -109,7 +109,7 @@ fn cornell_box() {
 }
 
 fn main() {
-    final_scene(800,2000,40)
+    final_scene(800, 2000, 40)
 }
 #[allow(dead_code)]
 fn earth() {
