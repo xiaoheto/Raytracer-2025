@@ -109,7 +109,7 @@ fn cornell_box() {
 }
 
 fn main() {
-    final_scene(800, 2000, 40)
+    final_scene(800, 3000, 40)
 }
 #[allow(dead_code)]
 fn earth() {
@@ -198,7 +198,7 @@ fn final_scene(image_width: usize, samples_per_pixel: usize, max_depth: usize) {
 
     let center1 = Point3::new(400.0, 400.0, 200.0);
     let mmat: Arc<dyn Material + Send + Sync> = Arc::new(Lambertian::new_texture(Arc::new(
-        ImageTexture::new("Mars.jpg"),
+        ImageTexture::new("gyn.png"),
     )));
     world.add(Arc::new(Sphere::new(center1, 50.0, mmat)));
 
@@ -221,12 +221,21 @@ fn final_scene(image_width: usize, samples_per_pixel: usize, max_depth: usize) {
         zmat,
     )));
 
+    let white: Arc<dyn Material + Send + Sync> = Arc::new(Lambertian::new_texture(Arc::new(
+        ImageTexture::new("lka.png"),
+    )));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(100.0, 500.0, 80.0), // Position the ball in the right-top corner
+        50.0,                            // Radius of the sphere
+        white,                           // Material
+    )));
+
     let boundary: Arc<dyn Hittable + Sync + Send> = Arc::new(Sphere::new(
         Point3::new(360.0, 150.0, 145.0),
         70.0,
         Arc::new(Lambertian::new_texture(Arc::new(ImageTexture::new(
             "Venus.jpg",
-        )))), // 使用 "Menus.jpg" 作为纹理
+        )))), // 使用 "Venus.jpg" 作为纹理
     ));
     world.add(Arc::clone(&boundary));
     world.add(Arc::new(ConstantMedium::new_with_color(
